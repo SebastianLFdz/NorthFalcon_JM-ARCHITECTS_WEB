@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Página dedicada a un festival de música regional mexicana">
+    <meta name="keywords" content="música, festival, banda, noreño, sierreño, mariachi, corridos, música grupera, méxico, regional mexicano">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="CSS/estilos.css">
+    <title>JM ARCHITECTS </title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <img src="IMG/logo_jm_blanco.png" width="260px" alt="Logo de la empresa">
+        </div>
+
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="Nosotros.html">Nosotros</a></li>
+                <li><a href="blog.html">Blog</a></li>
+                <li><a href="Preguntas.html">Preguntas</a></li>
+                <li><a href="Contacto.html">Contacto</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="parallax">
+        <h1>SOMOS TU SOLUCIÓN</h1>
+        <h3>Agencia consultora | Servicio de bienes raíces | Título y desarrollo de bienes raíces</h3>
+    </section>
+
+    <section class="eventos">
+        <h2>Servicios Destacados</h2>
+        <div class="evento">
+            <img src="IMG/predios.png"  alt="Sierreño Tour">
+            <p>Subdivisión de predios</p>
+        </div>
+
+        <div class="evento">
+            <img src="IMG/levantamientos.png" alt="Bandas de México">
+            <p>Levantamientos topográficos</p>
+        </div>
+
+        <div class="evento">
+            <img src="IMG/rectificacion.png" alt="Barra Abierta a los Dolidos">
+            <p>Rectificación de medidas y superficie</p>
+        </div>
+    </section>
+
+    <section class="contacto-parallax">
+        <h3>¿Te interesa algún otro trámite?</h3>
+        <div class="formulario">
+            <form action="procesar_formulario.php" method="post">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required>
+
+                <label for="email">Correo Electrónico:</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="mensaje">Mensaje:</label>
+                <textarea id="mensaje" name="mensaje" rows="4" required></textarea>
+
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <div class="social-media">
+            <a href="https://www.instagram.com/architects.jm/" target="_blank" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://www.facebook.com" target="_blank" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </div>
+        <p>&copy; JM ARCHITECTS | Tel. +52 828 131 1613 | Cadereyta Jimenez, Nuevo León | 2026 </p>
+    </footer>
+</body>
+</html>
