@@ -2,14 +2,35 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="JM Architects: urbanización, lotificación de terrenos, subdivisiones, avalúos y trámites catastrales en Cadereyta Jiménez, Nuevo León.">
-    <meta name="keywords" content="arquitectura, urbanización, lotificación, subdivisión de predios, avalúos, trámites catastrales, levantamiento topográfico, Cadereyta, Nuevo León">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} | JM ARCHITECTS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% set titulo_completo = title ~ ' | JM ARCHITECTS' %}
+    <title>{{ titulo_completo }}</title>
+    <meta name="description" content="{% block descripcion %}JM Architects: urbanización, lotificación de terrenos, subdivisiones, avalúos, trámites catastrales y levantamientos topográficos en Cadereyta Jiménez, Nuevo León.{% endblock %}">
+    {% set descripcion_pagina = self.descripcion() %}
+    <link rel="canonical" href="{{ url_sitio() ~ request.path }}">
+    {% if request.endpoint in ('admin', 'login') %}<meta name="robots" content="noindex">{% endif %}
+
+    <meta property="og:type" content="{% block og_tipo %}website{% endblock %}">
+    <meta property="og:site_name" content="JM Architects">
+    <meta property="og:locale" content="es_MX">
+    <meta property="og:title" content="{{ titulo_completo }}">
+    <meta property="og:description" content="{{ descripcion_pagina | trim }}">
+    <meta property="og:url" content="{{ url_sitio() ~ request.path }}">
+    <meta property="og:image" content="{% block og_imagen %}{{ url_sitio() ~ url_for('static', filename='IMG/construction-plans-architectural-project.jpg') }}{% endblock %}">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="icon" href="{{ url_for('favicon') }}" sizes="any">
+    <link rel="icon" type="image/png" href="{{ static_v('IMG/icono-512.png') }}">
+    <link rel="apple-touch-icon" href="{{ static_v('IMG/apple-touch-icon.png') }}">
+    <meta name="theme-color" content="#000000">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/estilos.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/funciones.css') }}">
+    <link rel="stylesheet" href="{{ static_v('CSS/estilos.css') }}">
+    <link rel="stylesheet" href="{{ static_v('CSS/funciones.css') }}">
+    {% block head_extra %}{% endblock %}
 </head>
 <body>
     {% set ep = request.endpoint %}
@@ -18,26 +39,27 @@
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav"><i class="fa-solid fa-bars"></i> Menú</button>
         <nav id="main-nav" aria-label="Navegación principal">
             <ul>
-                <li><a href="{{ url_for('home') }}" {% if ep == 'home' %}class="activo"{% endif %}>Inicio</a></li>
-                <li><a href="{{ url_for('about') }}" {% if ep == 'about' %}class="activo"{% endif %}>Nosotros</a></li>
-                <li><a href="{{ url_for('services') }}" {% if ep == 'services' %}class="activo"{% endif %}>Servicios</a></li>
-                <li><a href="{{ url_for('proyectos') }}" {% if ep == 'proyectos' %}class="activo"{% endif %}>Proyectos</a></li>
-                <li><a href="{{ url_for('blog') }}" {% if ep in ('blog', 'article') %}class="activo"{% endif %}>Blog</a></li>
-                <li><a href="{{ url_for('reviews_page') }}" {% if ep == 'reviews_page' %}class="activo"{% endif %}>Reseñas</a></li>
-                <li><a href="{{ url_for('questions') }}" {% if ep == 'questions' %}class="activo"{% endif %}>Preguntas</a></li>
-                <li><a href="{{ url_for('contact') }}" {% if ep == 'contact' %}class="activo"{% endif %}>Contacto</a></li>
+                <li><a href="{{ url_for('home') }}" {% if ep == 'home' %}class="activo" aria-current="page"{% endif %}>Inicio</a></li>
+                <li><a href="{{ url_for('about') }}" {% if ep == 'about' %}class="activo" aria-current="page"{% endif %}>Nosotros</a></li>
+                <li><a href="{{ url_for('services') }}" {% if ep == 'services' %}class="activo" aria-current="page"{% endif %}>Servicios</a></li>
+                <li><a href="{{ url_for('proyectos') }}" {% if ep == 'proyectos' %}class="activo" aria-current="page"{% endif %}>Proyectos</a></li>
+                <li><a href="{{ url_for('blog') }}" {% if ep in ('blog', 'article') %}class="activo" aria-current="page"{% endif %}>Blog</a></li>
+                <li><a href="{{ url_for('reviews_page') }}" {% if ep == 'reviews_page' %}class="activo" aria-current="page"{% endif %}>Reseñas</a></li>
+                <li><a href="{{ url_for('questions') }}" {% if ep == 'questions' %}class="activo" aria-current="page"{% endif %}>Preguntas</a></li>
+                <li><a href="{{ url_for('contact') }}" {% if ep == 'contact' %}class="activo" aria-current="page"{% endif %}>Contacto</a></li>
                 {% if session.get('usuario') %}
                 <li class="nav-usuario">
                     <details>
                         <summary><i class="fa-solid fa-circle-user"></i> {{ session['usuario'] }}</summary>
                         <ul>
                             <li><a href="{{ url_for('admin') }}"><i class="fa-solid fa-gauge"></i> Panel administrativo</a></li>
+                            <li><a href="{{ url_for('admin', vista='vista-cuenta') }}"><i class="fa-solid fa-key"></i> Cambiar contraseña</a></li>
                             <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</a></li>
                         </ul>
                     </details>
                 </li>
                 {% else %}
-                <li><a href="{{ url_for('login') }}" {% if ep == 'login' %}class="activo"{% endif %}><i class="fa-solid fa-user"></i> Iniciar sesión</a></li>
+                <li><a href="{{ url_for('login') }}" {% if ep == 'login' %}class="activo" aria-current="page"{% endif %}><i class="fa-solid fa-user"></i> Iniciar sesión</a></li>
                 {% endif %}
             </ul>
         </nav>
@@ -48,14 +70,15 @@
     <main>{% block content %}{% endblock %}</main>
     <footer>
         <div class="social-media">
-            <a href="https://www.instagram.com/architects.jm/" target="_blank" rel="noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="https://www.facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://wa.me/528281311613" target="_blank" rel="noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            <a href="{{ sitio.instagram }}" target="_blank" rel="noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            {% if sitio.facebook %}<a href="{{ sitio.facebook }}" target="_blank" rel="noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>{% endif %}
+            <a href="https://wa.me/{{ sitio.whatsapp }}" target="_blank" rel="noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
         </div>
-        <p>&copy; JM ARCHITECTS | Tel. +52 828 131 1613 | Cadereyta Jiménez, Nuevo León | {{ year }}</p>
+        <p>&copy; JM ARCHITECTS | Tel. {{ sitio.telefono }} | {{ sitio.ciudad }}, {{ sitio.estado }} | {{ year }}</p>
+        <p class="footer-legal"><a href="{{ url_for('privacidad') }}">Aviso de privacidad</a></p>
     </footer>
-    <a class="whatsapp-float" href="https://wa.me/528281311613" target="_blank" rel="noreferrer" aria-label="Escríbenos por WhatsApp"><i class="fab fa-whatsapp"></i></a>
-    <script src="{{ url_for('static', filename='js/site.js') }}"></script>
+    <a class="whatsapp-float" href="https://wa.me/{{ sitio.whatsapp }}" target="_blank" rel="noreferrer" aria-label="Escríbenos por WhatsApp"><i class="fab fa-whatsapp"></i></a>
+    <script src="{{ static_v('js/site.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,4 +1,32 @@
 {% extends "base.html" %}
+{% from "_macros.html" import casilla_privacidad, captcha with context %}
+
+{% block head_extra %}
+<script type="application/ld+json">
+{{ {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "JM Architects",
+    "description": "Urbanización, lotificación de terrenos, subdivisiones, avalúos, trámites catastrales y levantamientos topográficos.",
+    "url": url_sitio() ~ "/",
+    "logo": url_sitio() ~ url_for('static', filename='IMG/icono-512.png'),
+    "image": url_sitio() ~ url_for('static', filename='IMG/construction-plans-architectural-project.jpg'),
+    "telephone": sitio.telefono,
+    "email": sitio.correo,
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": sitio.direccion,
+        "addressLocality": sitio.ciudad,
+        "addressRegion": sitio.estado,
+        "postalCode": sitio.cp,
+        "addressCountry": "MX"
+    },
+    "areaServed": "Nuevo León",
+    "sameAs": [sitio.instagram] + ([sitio.facebook] if sitio.facebook else [])
+} | tojson }}
+</script>
+{% endblock %}
+
 {% block content %}
 <section id="parallax">
     <h1>SOMOS TU SOLUCIÓN</h1>
@@ -8,15 +36,15 @@
 <section class="eventos">
     <h2>Servicios Destacados</h2>
     <div class="evento">
-        <img src="{{ url_for('static', filename='IMG/predios.png') }}" alt="Subdivisión de predios">
+        <img src="{{ url_for('static', filename='IMG/predios.png') }}" alt="Subdivisión de predios" loading="lazy">
         <p>Subdivisión de predios</p>
     </div>
     <div class="evento">
-        <img src="{{ url_for('static', filename='IMG/levantamientos.png') }}" alt="Levantamientos topográficos">
+        <img src="{{ url_for('static', filename='IMG/levantamientos.png') }}" alt="Levantamientos topográficos" loading="lazy">
         <p>Levantamientos topográficos</p>
     </div>
     <div class="evento">
-        <img src="{{ url_for('static', filename='IMG/rectificacion.png') }}" alt="Rectificación de medidas y superficie">
+        <img src="{{ url_for('static', filename='IMG/rectificacion.png') }}" alt="Rectificación de medidas y superficie" loading="lazy">
         <p>Rectificación de medidas y superficie</p>
     </div>
 </section>
@@ -35,6 +63,8 @@
             <label for="mensaje">Mensaje:</label>
             <textarea id="mensaje" name="mensaje" rows="4" required maxlength="2000"></textarea>
 
+            {{ casilla_privacidad('privacidad-inicio') }}
+            {{ captcha() }}
             <button type="submit">Enviar</button>
         </form>
     </div>

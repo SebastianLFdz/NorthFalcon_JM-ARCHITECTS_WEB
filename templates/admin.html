@@ -1,32 +1,49 @@
 {% extends "base.html" %}
 {% from "_macros.html" import estrellas %}
 {% block content %}
+{% set pendientes = referencias | rejectattr('aprobada') | list | length %}
+{% set no_leidos = mensajes | rejectattr('leido') | list | length %}
 <section id="parallax">
     <h1>PANEL ADMINISTRATIVO</h1>
     <h3>Bienvenido, {{ session['usuario'] }}</h3>
 </section>
 
 <section class="panel">
-    <p class="panel-intro">Aquí puedes publicar, editar y eliminar proyectos, y gestionar las reseñas de tus clientes.</p>
+    <p class="panel-intro">Aquí puedes publicar proyectos y artículos, moderar las reseñas y consultar los mensajes de tus clientes.</p>
 
-    <!-- VISTA 1: MENÚ PRINCIPAL -->
+    <!-- VISTA: MENÚ PRINCIPAL -->
     <div id="vista-menu-principal" class="vista-admin">
         <h2>¿Qué deseas gestionar?</h2>
-        <div class="panel-menu">
+        <div class="panel-menu tres">
             <button type="button" class="panel-tarjeta" data-vista="vista-submenu-proyectos">
                 <i class="fa-solid fa-compass-drafting"></i>
                 <h3>Proyectos</h3>
                 <p>Crear, editar o eliminar proyectos ({{ proyectos | length }})</p>
             </button>
-            <button type="button" class="panel-tarjeta" data-vista="vista-submenu-referencias">
+            <button type="button" class="panel-tarjeta" data-vista="vista-submenu-blog">
+                <i class="fa-regular fa-newspaper"></i>
+                <h3>Blog</h3>
+                <p>Publicar y editar artículos ({{ articulos | length }})</p>
+            </button>
+            <button type="button" class="panel-tarjeta" data-vista="vista-lista-referencias">
                 <i class="fa-solid fa-star"></i>
-                <h3>Reseñas</h3>
-                <p>Gestionar reseñas y listados ({{ referencias | length }})</p>
+                <h3>Reseñas {% if pendientes %}<span class="insignia">{{ pendientes }}</span>{% endif %}</h3>
+                <p>Aprobar, ocultar o eliminar reseñas{% if pendientes %} · {{ pendientes }} pendiente{{ 's' if pendientes > 1 }}{% endif %}</p>
+            </button>
+            <button type="button" class="panel-tarjeta" data-vista="vista-mensajes">
+                <i class="fa-solid fa-envelope"></i>
+                <h3>Mensajes {% if no_leidos %}<span class="insignia">{{ no_leidos }}</span>{% endif %}</h3>
+                <p>Solicitudes del formulario de contacto{% if no_leidos %} · {{ no_leidos }} sin leer{% endif %}</p>
+            </button>
+            <button type="button" class="panel-tarjeta" data-vista="vista-cuenta">
+                <i class="fa-solid fa-user-gear"></i>
+                <h3>Mi cuenta</h3>
+                <p>Cambiar contraseña</p>
             </button>
         </div>
     </div>
 
-    <!-- VISTA 2: SUBMENÚ PROYECTOS -->
+    <!-- VISTA: SUBMENÚ PROYECTOS -->
     <div id="vista-submenu-proyectos" class="vista-admin oculto">
         <button type="button" class="btn-volver" data-vista="vista-menu-principal"><i class="fa-solid fa-arrow-left"></i> Menú principal</button>
         <h2>Gestión de Proyectos</h2>
@@ -46,20 +63,7 @@
         </div>
     </div>
 
-    <!-- VISTA 3: SUBMENÚ RESEÑAS -->
-    <div id="vista-submenu-referencias" class="vista-admin oculto">
-        <button type="button" class="btn-volver" data-vista="vista-menu-principal"><i class="fa-solid fa-arrow-left"></i> Menú principal</button>
-        <h2>Gestión de Reseñas</h2>
-        <div class="panel-menu uno">
-            <button type="button" class="panel-tarjeta" data-vista="vista-lista-referencias">
-                <i class="fa-solid fa-list-check"></i>
-                <h3>Mostrar y gestionar listado</h3>
-                <p>Visualiza todas las reseñas de clientes y elimina las que desees.</p>
-            </button>
-        </div>
-    </div>
-
-    <!-- VISTA 4: CREAR PROYECTO -->
+    <!-- VISTA: CREAR PROYECTO -->
     <div id="vista-crear-proyecto" class="vista-admin oculto">
         <button type="button" class="btn-volver" data-vista="vista-submenu-proyectos"><i class="fa-solid fa-arrow-left"></i> Volver a proyectos</button>
         <div class="panel-card formulario-contacto">
@@ -75,7 +79,7 @@
                 <div class="panel-fila">
                     <div>
                         <label for="nuevo-fecha">Fecha del proyecto</label>
-                        <input type="date" id="nuevo-fecha" name="fecha">
+                        <input type="date" id="nuevo-fecha" name="fecha" value="{{ hoy.isoformat() }}">
                     </div>
                     <div>
                         <label for="nuevo-imagen">Imagen principal *</label>
@@ -87,7 +91,7 @@
         </div>
     </div>
 
-    <!-- VISTA 5: ELIMINAR PROYECTO -->
+    <!-- VISTA: ELIMINAR PROYECTO -->
     <div id="vista-eliminar-proyecto" class="vista-admin oculto">
         <button type="button" class="btn-volver" data-vista="vista-submenu-proyectos"><i class="fa-solid fa-arrow-left"></i> Volver a proyectos</button>
         <div class="panel-card">
@@ -118,7 +122,7 @@
         </div>
     </div>
 
-    <!-- VISTA 6: EDITAR PROYECTO -->
+    <!-- VISTA: EDITAR PROYECTO -->
     <div id="vista-editar-lista" class="vista-admin oculto">
         <button type="button" class="btn-volver" data-vista="vista-submenu-proyectos"><i class="fa-solid fa-arrow-left"></i> Volver a proyectos</button>
         <div class="panel-card">
@@ -173,23 +177,148 @@
         {% endfor %}
     </div>
 
-    <!-- VISTA 7: LISTA Y ELIMINACIÓN DE RESEÑAS -->
-    <div id="vista-lista-referencias" class="vista-admin oculto">
-        <button type="button" class="btn-volver" data-vista="vista-submenu-referencias"><i class="fa-solid fa-arrow-left"></i> Volver a reseñas</button>
+    <!-- VISTA: SUBMENÚ BLOG -->
+    <div id="vista-submenu-blog" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-menu-principal"><i class="fa-solid fa-arrow-left"></i> Menú principal</button>
+        <h2>Gestión del Blog</h2>
+        <div class="panel-menu">
+            <button type="button" class="panel-tarjeta" data-vista="vista-crear-articulo">
+                <i class="fa-solid fa-circle-plus"></i>
+                <h3>Escribir artículo</h3>
+            </button>
+            <button type="button" class="panel-tarjeta" data-vista="vista-lista-articulos">
+                <i class="fa-solid fa-list"></i>
+                <h3>Editar o eliminar</h3>
+            </button>
+        </div>
+    </div>
+
+    <!-- VISTA: CREAR ARTÍCULO -->
+    <div id="vista-crear-articulo" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-submenu-blog"><i class="fa-solid fa-arrow-left"></i> Volver al blog</button>
+        <div class="panel-card formulario-contacto">
+            <h2><i class="fa-solid fa-pen-nib"></i> Nuevo artículo</h2>
+            <form action="{{ url_for('admin_crear_articulo') }}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label for="art-titulo">Título *</label>
+                <input type="text" id="art-titulo" name="titulo" required maxlength="200" placeholder="Ej. ¿Qué es una rectificación de medidas?">
+
+                <label for="art-extracto">Resumen (aparece en la lista del blog y en Google)</label>
+                <input type="text" id="art-extracto" name="extracto" maxlength="300" placeholder="Una o dos frases que inviten a leer el artículo">
+
+                <label for="art-contenido">Contenido *</label>
+                <textarea id="art-contenido" name="contenido" rows="12" required placeholder="Escribe el artículo aquí..."></textarea>
+                <small class="panel-nota">Separa los párrafos con una línea en blanco. Para un subtítulo, empieza la línea con <strong>## </strong> (ejemplo: ## Requisitos).</small>
+
+                <div class="panel-fila">
+                    <div>
+                        <label for="art-fecha">Fecha</label>
+                        <input type="date" id="art-fecha" name="fecha" value="{{ hoy.isoformat() }}">
+                    </div>
+                    <div>
+                        <label for="art-imagen">Imagen principal (opcional)</label>
+                        <input type="file" id="art-imagen" name="imagen" accept="image/jpeg,image/png,image/webp,image/gif" data-comprimir data-max-mb="4">
+                    </div>
+                </div>
+                <label class="casilla-privacidad" for="art-publicado"><input type="checkbox" id="art-publicado" name="publicado" value="1" checked> Publicar de inmediato (si lo desmarcas se guarda como borrador)</label>
+                <button type="submit"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar artículo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- VISTA: LISTA DE ARTÍCULOS -->
+    <div id="vista-lista-articulos" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-submenu-blog"><i class="fa-solid fa-arrow-left"></i> Volver al blog</button>
         <div class="panel-card">
-            <h2><i class="fa-solid fa-comments"></i> Reseñas de clientes</h2>
-            <p class="panel-nota">Listado de testimonios registrados. Haz clic en "Borrar" para eliminar una reseña del sitio.</p>
+            <h2><i class="fa-regular fa-newspaper"></i> Artículos</h2>
+            <p class="panel-nota">Edita, publica, oculta o elimina los artículos del blog.</p>
             <div class="tabla-contenedor">
                 <table class="tabla-admin">
-                    <thead><tr><th>Cliente</th><th>Calificación</th><th>Comentario</th><th>Fecha</th><th>Acción</th></tr></thead>
+                    <thead><tr><th>Imagen</th><th>Título</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                        {% for a in articulos %}
+                        <tr>
+                            <td><img class="miniatura" src="{{ url_for('imagen_articulo', articulo_id=a.id, v=version_imagen(a)) }}" alt="" loading="lazy"></td>
+                            <td><strong>{{ a.titulo }}</strong></td>
+                            <td>{% if a.publicado %}<span class="estado ok">Publicado</span>{% else %}<span class="estado pendiente">Borrador</span>{% endif %}</td>
+                            <td>{{ a.fecha | fecha_corta }}</td>
+                            <td class="acciones">
+                                {% if a.publicado %}<a class="btn-tabla" href="{{ url_for('article', slug=a.slug) }}" target="_blank"><i class="fa-solid fa-eye"></i> Ver</a>{% endif %}
+                                <button type="button" class="btn-tabla" data-abrir="modalArticulo{{ a.id }}"><i class="fa-solid fa-pen"></i> Editar</button>
+                                <form action="{{ url_for('eliminar_articulo', id=a.id) }}" method="post" onsubmit="return confirm('¿Eliminar este artículo? Esta acción es irreversible.');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-tabla peligro"><i class="fa-solid fa-trash"></i> Borrar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="tabla-vacia"><i class="fa-regular fa-newspaper"></i><br>Aún no hay artículos.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% for a in articulos %}
+        <dialog class="panel-dialogo dialogo-ancho" id="modalArticulo{{ a.id }}">
+            <form action="{{ url_for('editar_articulo', id=a.id) }}" method="post" enctype="multipart/form-data" class="formulario-contacto">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="dialogo-cabecera">
+                    <h3>Editar artículo</h3>
+                    <button type="button" class="dialogo-cerrar" data-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <label for="art-titulo-{{ a.id }}">Título *</label>
+                <input type="text" id="art-titulo-{{ a.id }}" name="titulo" value="{{ a.titulo }}" required maxlength="200">
+
+                <label for="art-extracto-{{ a.id }}">Resumen</label>
+                <input type="text" id="art-extracto-{{ a.id }}" name="extracto" value="{{ a.extracto or '' }}" maxlength="300">
+
+                <label for="art-contenido-{{ a.id }}">Contenido *</label>
+                <textarea id="art-contenido-{{ a.id }}" name="contenido" rows="12" required>{{ a.contenido }}</textarea>
+                <small class="panel-nota">Párrafos separados por una línea en blanco; subtítulos con <strong>## </strong> al inicio.</small>
+
+                <label for="art-fecha-{{ a.id }}">Fecha *</label>
+                <input type="date" id="art-fecha-{{ a.id }}" name="fecha" value="{{ a.fecha.isoformat() }}" required>
+
+                <label for="art-imagen-{{ a.id }}">Nueva imagen (opcional)</label>
+                <input type="file" id="art-imagen-{{ a.id }}" name="imagen" accept="image/jpeg,image/png,image/webp,image/gif" data-comprimir data-max-mb="4">
+
+                <label class="casilla-privacidad" for="art-publicado-{{ a.id }}"><input type="checkbox" id="art-publicado-{{ a.id }}" name="publicado" value="1" {% if a.publicado %}checked{% endif %}> Publicado</label>
+
+                <div class="dialogo-acciones">
+                    <button type="button" class="boton boton-claro" data-cerrar>Cancelar</button>
+                    <button type="submit">Guardar cambios</button>
+                </div>
+            </form>
+        </dialog>
+        {% endfor %}
+    </div>
+
+    <!-- VISTA: RESEÑAS -->
+    <div id="vista-lista-referencias" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-menu-principal"><i class="fa-solid fa-arrow-left"></i> Menú principal</button>
+        <div class="panel-card">
+            <h2><i class="fa-solid fa-comments"></i> Reseñas de clientes</h2>
+            <p class="panel-nota">Las reseñas nuevas no aparecen en el sitio hasta que las apruebas. Las pendientes se muestran primero.</p>
+            <div class="tabla-contenedor">
+                <table class="tabla-admin">
+                    <thead><tr><th>Cliente</th><th>Calificación</th><th>Comentario</th><th>Estado</th><th>Acciones</th></tr></thead>
                     <tbody>
                         {% for ref in referencias %}
-                        <tr>
-                            <td><strong>{{ ref.nombre }}</strong></td>
+                        <tr{% if not ref.aprobada %} class="fila-pendiente"{% endif %}>
+                            <td><strong>{{ ref.nombre }}</strong><br><small>{{ ref.fecha | fecha_corta }}</small></td>
                             <td class="sin-salto">{{ ref.calificacion }} {{ estrellas(ref.calificacion) }}</td>
                             <td class="comentario">"{{ ref.comentario }}"</td>
-                            <td>{{ ref.fecha | fecha_corta }}</td>
-                            <td>
+                            <td>{% if ref.aprobada %}<span class="estado ok">Publicada</span>{% else %}<span class="estado pendiente">Pendiente</span>{% endif %}</td>
+                            <td class="acciones">
+                                <form action="{{ url_for('aprobar_referencia', id=ref.id) }}" method="post">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    {% if ref.aprobada %}
+                                    <button type="submit" class="btn-tabla"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
+                                    {% else %}
+                                    <button type="submit" class="btn-tabla exito"><i class="fa-solid fa-check"></i> Aprobar</button>
+                                    {% endif %}
+                                </form>
                                 <form action="{{ url_for('eliminar_referencia', id=ref.id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta reseña?');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn-tabla peligro"><i class="fa-solid fa-trash"></i> Borrar</button>
@@ -202,6 +331,67 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- VISTA: MENSAJES DE CONTACTO -->
+    <div id="vista-mensajes" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-menu-principal"><i class="fa-solid fa-arrow-left"></i> Menú principal</button>
+        <div class="panel-card">
+            <h2><i class="fa-solid fa-envelope-open-text"></i> Mensajes de contacto</h2>
+            <p class="panel-nota">Todas las solicitudes del formulario quedan guardadas aquí, aunque el correo no se haya podido enviar.</p>
+            {% for m in mensajes %}
+            <article class="mensaje{% if not m.leido %} no-leido{% endif %}">
+                <div class="mensaje-cabecera">
+                    <div>
+                        <strong>{{ m.nombre }}</strong>
+                        {% if not m.leido %}<span class="estado pendiente">Nuevo</span>{% endif %}
+                        <small>{{ m.fecha | fecha_larga }}</small>
+                    </div>
+                    {% if m.enviado %}<span class="estado ok" title="También llegó por correo"><i class="fa-solid fa-envelope-circle-check"></i> Correo enviado</span>
+                    {% else %}<span class="estado aviso" title="Revisa la configuración de Resend"><i class="fa-solid fa-triangle-exclamation"></i> Solo guardado</span>{% endif %}
+                </div>
+                <p class="mensaje-datos">
+                    <a href="mailto:{{ m.correo }}"><i class="fa-solid fa-at"></i> {{ m.correo }}</a>
+                    {% if m.telefono %}<a href="tel:{{ m.telefono }}"><i class="fa-solid fa-phone"></i> {{ m.telefono }}</a>{% endif %}
+                    {% if m.servicio %}<span><i class="fa-solid fa-tag"></i> {{ m.servicio }}</span>{% endif %}
+                    {% if m.archivo_nombre %}<span title="El archivo se envía solo por correo"><i class="fa-solid fa-paperclip"></i> {{ m.archivo_nombre }}</span>{% endif %}
+                </p>
+                <p class="mensaje-texto">{{ m.mensaje }}</p>
+                <div class="acciones">
+                    <a class="btn-tabla" href="mailto:{{ m.correo }}?subject={{ ('Re: tu solicitud a JM Architects') | urlencode }}"><i class="fa-solid fa-reply"></i> Responder</a>
+                    <form action="{{ url_for('marcar_mensaje', id=m.id) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-tabla">{% if m.leido %}<i class="fa-solid fa-envelope"></i> Marcar no leído{% else %}<i class="fa-solid fa-envelope-open"></i> Marcar leído{% endif %}</button>
+                    </form>
+                    <form action="{{ url_for('eliminar_mensaje', id=m.id) }}" method="post" onsubmit="return confirm('¿Eliminar este mensaje?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-tabla peligro"><i class="fa-solid fa-trash"></i> Borrar</button>
+                    </form>
+                </div>
+            </article>
+            {% else %}
+            <div class="tabla-vacia"><i class="fa-regular fa-envelope"></i><br>Aún no hay mensajes.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- VISTA: MI CUENTA -->
+    <div id="vista-cuenta" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-menu-principal"><i class="fa-solid fa-arrow-left"></i> Menú principal</button>
+        <div class="panel-card formulario-contacto panel-angosto">
+            <h2><i class="fa-solid fa-key"></i> Cambiar contraseña</h2>
+            <form action="{{ url_for('cambiar_password') }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="usuario" value="{{ session['usuario'] }}" autocomplete="username" hidden>
+                <label for="pw-actual">Contraseña actual</label>
+                <input type="password" id="pw-actual" name="actual" required autocomplete="current-password">
+                <label for="pw-nueva">Nueva contraseña (mínimo 8 caracteres)</label>
+                <input type="password" id="pw-nueva" name="nueva" required minlength="8" autocomplete="new-password">
+                <label for="pw-confirmar">Confirmar nueva contraseña</label>
+                <input type="password" id="pw-confirmar" name="confirmar" required minlength="8" autocomplete="new-password">
+                <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar contraseña</button>
+            </form>
         </div>
     </div>
 

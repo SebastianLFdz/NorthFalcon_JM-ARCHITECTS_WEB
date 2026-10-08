@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "_macros.html" import paginacion %}
+{% block descripcion %}Proyectos de JM Architects: lotificaciones, subdivisiones, urbanización y levantamientos topográficos realizados en Nuevo León.{% endblock %}
 {% block content %}
 <section id="parallax">
     <h1>PROYECTOS</h1>
@@ -49,6 +51,8 @@
         {% endif %}
     </div>
     {% endfor %}
+
+    {{ paginacion('proyectos', pagina, paginas) }}
 </section>
 {% endblock %}
 

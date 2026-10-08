@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% from "_macros.html" import estrellas %}
+{% from "_macros.html" import estrellas, captcha with context %}
+{% block descripcion %}Opiniones de clientes de JM Architects sobre nuestros servicios de urbanización, lotificación, avalúos y trámites en Nuevo León.{% endblock %}
 {% block content %}
 <section id="parallax">
     <h1>RESEÑAS</h1>
@@ -55,7 +56,9 @@
                     <label for="comentario">Tu reseña</label>
                     <textarea id="comentario" name="comentario" rows="4" required maxlength="500" placeholder="¿Qué te pareció nuestro trabajo?"></textarea>
 
-                    <button type="submit">Publicar reseña</button>
+                    {{ captcha() }}
+                    <p class="nota-formulario">Tu reseña se publicará después de una breve revisión. Al enviarla aceptas nuestro <a href="{{ url_for('privacidad') }}">aviso de privacidad</a>.</p>
+                    <button type="submit">Enviar reseña</button>
                 </form>
             </div>
         </div>

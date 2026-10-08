@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "_macros.html" import paginacion %}
+{% block descripcion %}Blog de JM Architects: lo que necesitas saber sobre subdivisiones, lotificación, avalúos y trámites catastrales en Nuevo León.{% endblock %}
 {% block content %}
 <section id="parallax">
     <h1>BLOG</h1>
@@ -11,15 +13,28 @@
     <div class="noticias">
         {% for articulo in articulos %}
         <a href="{{ url_for('article', slug=articulo.slug) }}">
-            <div class="noticia{% if loop.first %} grande{% endif %}">
-                <img src="{{ url_for('static', filename=articulo.imagen) }}" alt="{{ articulo.titulo }}">
+            <div class="noticia{% if loop.first and pagina == 1 %} grande{% endif %}">
+                <img src="{{ url_for('imagen_articulo', articulo_id=articulo.id, v=version_imagen(articulo)) }}" alt="{{ articulo.titulo }}" loading="lazy">
                 <div class="descripcion">
-                    <h3>{{ articulo.titulo_corto }}</h3>
-                    <p>{{ articulo.extracto }}</p>
+                    <h3>{{ articulo.titulo }}</h3>
+                    {% if articulo.extracto %}<p>{{ articulo.extracto }}</p>{% endif %}
                 </div>
             </div>
         </a>
         {% endfor %}
     </div>
+    {% if not articulos %}
+    <div class="estado-vacio">
+        <i class="fa-regular fa-newspaper"></i>
+        {% if error_db %}
+        <h3>El blog no está disponible por el momento</h3>
+        <p>Intenta de nuevo más tarde.</p>
+        {% else %}
+        <h3>Aún no hay artículos publicados</h3>
+        <p>Muy pronto compartiremos aquí información útil sobre trámites y terrenos.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    {{ paginacion('blog', pagina, paginas) }}
 </section>
 {% endblock %}

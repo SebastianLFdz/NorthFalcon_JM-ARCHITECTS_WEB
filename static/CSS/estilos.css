@@ -106,8 +106,7 @@ nav a:hover {
     z-index: 1;
 }
 
-
-/* Estilos para la sección de eventos */
+/* Estilos para la sección de servicios destacados (inicio) */
 .eventos {
     display: flex;
     justify-content: space-between;
@@ -142,24 +141,6 @@ nav a:hover {
     font-size: 18px;
 }
 
-/* Estilos para la sección de video */
-.video {
-    display: flex;
-    padding: 50px 20px;
-    background-color: #121212;
-    color: white;
-}
-
-.video-container {
-    width: 50%;
-}
-
-.dos-columnas {
-    width: 50%;
-    padding: 20px;
-    font-size: 18px;
-}
-
 /* Estilos para la sección de contacto en parallax */
 .contacto-parallax {
     background-image: url('../IMG/image-engineering-objects-workplace-top-view-construction-concept-engineering-tools-vintage-tone-retro-filter-effect-soft-focus-selective-focus.jpg');
@@ -172,7 +153,7 @@ nav a:hover {
 
 .formulario {
     max-width: 500px;
-    margin: 0 auto; 
+    margin: 0 auto;
     background-color: rgba(255, 255, 255, 0.9);
     padding: 60px;
     border-radius: 8px;
@@ -230,11 +211,9 @@ footer {
     color: #b6b6b6;
 }
 
-/* Aquí inicia el código CSS para la sección BLOG */
-/* Sección BLOG - Actividad 3.2 */
-/* Espaciado general en la sección del blog */
+/* Sección BLOG */
 .blog {
-    padding: 60px 20px; /* Aumentado para mejor separación del contenido */
+    padding: 60px 20px;
     background-color: #f9f9f9;
 }
 
@@ -246,16 +225,16 @@ footer {
     color: #333;
 }
 
-/* Estilo para la cuadrícula de noticias */
+/* Cuadrícula de noticias */
 .noticias {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Adaptación a pantallas más pequeñas */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
     margin: 0 auto;
-    max-width: 1200px; 
+    max-width: 1200px;
 }
 
-/* Estilo individual de cada noticia */
+/* Cada noticia */
 .noticia {
     background-color: #fff;
     border: 1px solid #ddd;
@@ -268,16 +247,14 @@ footer {
 .noticia.grande {
     grid-column: span 4; /* La noticia destacada ocupa cuatro columnas */
     font-weight: bold;
-    background-color: #ffffff; /* Color destacado */
+    background-color: #ffffff;
 }
 
-/* Efectos de hover */
 .noticia:hover {
     transform: scale(1.05);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Imagen dentro de la noticia */
 .noticia img {
     width: 100%;
     height: auto;
@@ -294,27 +271,16 @@ footer {
     color: #444;
 }
 
-/* Mejoras tipográficas */
 .descripcion p {
     margin: 0;
     color: #555;
 }
 
-.descripcion a {
-    color: #ffffff; /* Verde para los enlaces */
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.descripcion a:hover {
-    color: #000000;
-}
-
-/* Estilos para la actividad 3.3 */
+/* Slider de las notas */
 .slider {
     overflow: hidden;
     position: relative;
-    max-height: 500px; /* ajusta la altura según las necesidades */
+    max-height: 500px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -330,7 +296,7 @@ footer {
     object-fit: cover;
 }
 
-/* Estilos para el texto de la nota */
+/* Texto de la nota */
 .nota-detalle {
     text-align: justify;
     padding: 40px 20px;
@@ -353,253 +319,7 @@ footer {
     line-height: 1.6;
 }
 
-/* Contenedor de la nota */
-.contenido-nota {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-top: 30px;
-}
-
-.columna-texto {
-    width: 100%;
-    max-width: 60%;
-    text-align: left;
-    color: #444;
-}
-
-.columna-imagenes {
-    width: 100%;
-    max-width: 35%;
-    text-align: center;
-}
-
-.columna-imagenes img {
-    max-width: 100%;
-    margin: 10px 0;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Estilos para ocultar el slider al principio y mostrarlo con JavaScript */
-.slider-hidden {
-    display: none;
-}
-
-.noticia a {
-    display: block;
-    color: inherit;
-    text-decoration: none;
-}
-
-.noticia a:hover .descripcion h3 {
-    color: #2a2a2a; /* Color que resalte al pasar el cursor */
-}
-
-/* Estilo para nota-detalle-especial */
-.nota-detalle-especial {
-    max-width: 1000px;
-    margin: auto;
-    padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-}
-
-.nota-detalle-especial .encabezado-nota {
-    position: relative;
-    overflow: hidden;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.nota-detalle-especial .encabezado-imagen {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    filter: brightness(0.7);
-}
-
-.nota-detalle-especial .encabezado-texto {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    color: #fff;
-    max-width: 80%;
-}
-
-/* Contenido principal */
-.nota-detalle-especial .contenido-nota {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.nota-detalle-especial .columna-texto {
-    text-align: justify;
-    font-size: 18px;
-    color: #ffffff;
-    line-height: 1.8;
-}
-
-.nota-detalle-especial .galeria-imagenes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-}
-
-.nota-detalle-especial .galeria-imagenes img {
-    width: calc(33.333% - 10px);
-    height: 180px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .nota-detalle-especial .galeria-imagenes img {
-        width: calc(50% - 10px);
-    }
-    .nota-detalle-especial .encabezado-texto h2 {
-        font-size: 28px;
-    }
-    .nota-detalle-especial .encabezado-texto p {
-        font-size: 16px;
-    }
-}
-
-/* Estilo del encabezado con texto blanco y fondo semi-transparente */
-.nota-detalle-especial .encabezado-nota {
-    position: relative;
-    overflow: hidden;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.nota-detalle-especial .encabezado-imagen {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    filter: brightness(0.5); /* Oscurece la imagen de fondo */
-}
-
-.nota-detalle-especial .encabezado-texto {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    color: #fff; /* Texto en blanco */
-    max-width: 80%;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.5); /* Fondo oscuro semi-transparente */
-    border-radius: 8px;
-}
-
-.nota-detalle-especial .encabezado-texto h2 {
-    font-size: 36px;
-    font-weight: bold;
-    margin: 0;
-    color: #fff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* Sombra para mayor legibilidad */
-}
-
-.nota-detalle-especial .encabezado-texto p {
-    font-size: 18px;
-    margin-top: 10px;
-    line-height: 1.5;
-    color: #fff;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-}
-
-/* Sección de boletos */
-.seccion-boletos {
-    max-width: 1000px;
-    margin: auto;
-    text-align: center;
-    padding: 40px 20px;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.seccion-boletos h2 {
-    font-size: 32px;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-.seccion-boletos p {
-    font-size: 18px;
-    color: #666;
-    margin-bottom: 30px;
-}
-
-.boletos-opciones {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-}
-
-.boleto {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    width: 280px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-.boleto h3 {
-    font-size: 24px;
-    color: #444;
-    margin-bottom: 10px;
-}
-
-.boleto .precio {
-    font-size: 20px;
-    color: #d9534f;
-    font-weight: bold;
-    margin: 10px 0;
-}
-
-.boleto label {
-    display: block;
-    font-size: 16px;
-    color: #666;
-    margin-top: 10px;
-}
-
-.boleto input[type="number"] {
-    width: 60px;
-    padding: 5px;
-    margin-top: 5px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    text-align: center;
-}
-
-.btn-comprar {
-    margin-top: 15px;
-    padding: 10px 20px;
-    font-size: 16px;
-    color: #fff;
-    background-color: #242524;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.btn-comprar:hover {
-    background-color: #303130;
-}
-
-/* Estilos generales de la sección de preguntas frecuentes */
+/* Sección de preguntas frecuentes */
 .preguntas-frecuentes {
     max-width: 800px;
     margin: auto;
@@ -651,15 +371,12 @@ footer {
     background-color: #f0f0f0;
     border-radius: 0 0 8px 8px;
 }
-.faq-answer {
-    display: none;
-}
 
 .faq-answer.show {
     display: block;
 }
 
-/* Estilos generales de la sección de artistas */
+/* Tarjetas (página de servicios) */
 .artistas {
     max-width: 1000px;
     margin: auto;
@@ -713,13 +430,14 @@ footer {
 }
 
 .redes-sociales a {
-    font-size: 14px;
-    color: #4e4f4e;
+    margin: 0 10px;
+    font-size: 1.5rem;
+    color: #333;
     text-decoration: none;
     padding: 5px 10px;
     border: 1px solid #292929;
     border-radius: 5px;
-    transition: background-color 0.3s, color 0.3s;
+    transition: color 0.3s;
 }
 
 .redes-sociales a:hover {
@@ -727,7 +445,7 @@ footer {
     color: #fff;
 }
 
-/* Estilos generales de la sección Sobre Nosotros */
+/* Sección Sobre Nosotros */
 .sobre-nosotros {
     max-width: 1200px;
     margin: auto;
@@ -761,7 +479,7 @@ footer {
     margin-top: 20px;
 }
 
-.sobre-nosotros .texto p, 
+.sobre-nosotros .texto p,
 .sobre-nosotros .texto ul {
     font-size: 16px;
     color: #555;
@@ -773,19 +491,7 @@ footer {
     padding-left: 20px;
 }
 
-.sobre-nosotros .imagen {
-    flex: 1;
-    min-width: 300px;
-    text-align: center;
-}
-
-.sobre-nosotros .imagen img {
-    max-width: 100%;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Sección general */
+/* Sección de contacto */
 #contacto {
     padding: 50px 20px;
     background-color: #f9f9f9;
@@ -804,16 +510,7 @@ footer {
     color: #555;
 }
 
-/* Contenedor principal */
-.contacto-contenido {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    align-items: flex-start;
-}
-
-/* Formulario */
+/* Formulario en tarjeta blanca (reseñas y panel) */
 .formulario-contacto {
     flex: 1 1 300px;
     max-width: 400px;
@@ -872,17 +569,6 @@ footer {
     color: #555;
 }
 
-.redes-sociales a {
-    margin: 0 10px;
-    font-size: 1.5rem;
-    color: #333;
-    transition: color 0.3s;
-}
-
-.redes-sociales a:hover {
-    color: #2f2f2f;
-}
-
 /* Mapa */
 .mapa {
     margin-top: 30px;
@@ -912,17 +598,11 @@ footer {
     transition: background-color 0.3s;
 }
 
-.whatsapp a img {
-    width: 24px;
-    height: 24px;
-}
-
 .whatsapp a:hover {
     background-color: #2e2e2e;
 }
 
-
-/* Estilos de la página de agradecimiento */
+/* Página de aviso (404) */
 .agradecimiento {
     background-color: #f0f8ff;
     text-align: center;
@@ -940,11 +620,6 @@ footer {
     margin: 10px 0;
 }
 
-.agradecimiento strong {
-    font-size: 1.5em;
-    color: #2a2a2a;
-}
-
 .boton {
     display: inline-block;
     padding: 10px 20px;
@@ -959,60 +634,7 @@ footer {
     background-color: #2b2b2b;
 }
 
-/* Estilos del formulario de compra */
-.formulario-compra {
-    background-color: #f9f9f9;
-    padding: 30px;
-    margin: 20px auto;
-    max-width: 600px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.formulario-compra h2 {
-    font-size: 2em;
-    color: #333;
-    text-align: center;
-}
-
-.formulario-compra p {
-    text-align: center;
-    font-size: 1.2em;
-    margin: 10px 0;
-}
-
-.formulario-compra label {
-    display: block;
-    margin-top: 10px;
-    font-size: 1em;
-    color: #333;
-}
-
-.formulario-compra input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1em;
-}
-
-.formulario-compra button {
-    width: 100%;
-    padding: 15px;
-    background-color: #4bbe49;
-    color: white;
-    font-size: 1.2em;
-    border: none;
-    border-radius: 5px;
-    margin-top: 20px;
-    cursor: pointer;
-}
-
-.formulario-compra button:hover {
-    background-color: #4bbe49;
-}
-
+/* Nota del blog (vista de artículo) */
 .nota-detalle-especial {
     font-family: 'Montserrat', sans-serif;
     margin: 40px auto;
@@ -1024,16 +646,21 @@ footer {
 }
 
 .contenido {
-    display: flex;
+    display: grid;
     flex-direction: column;
-    gap: 30px;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 .imagen-principal img {
     width: 100%;
     height: auto;
-    border-radius: 10px;
+    border-radius: 15px;
     object-fit: cover;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .texto-principal h1 {
@@ -1058,319 +685,16 @@ footer {
 
 .texto {
     background-color: #fff;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     line-height: 1.6;
+    margin-bottom: 20px;
+    font-size: 1.1em;
 }
 
 .texto p {
     font-size: 1.1em;
     color: #333;
     margin-bottom: 20px;
-}
-
-.galeria {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-}
-
-.galeria img {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    object-fit: cover;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-}
-
-.nota-gerardo-ortiz {
-    font-family: 'Montserrat', sans-serif;
-    margin: 40px auto;
-    max-width: 1100px;
-    padding: 20px;
-    background-color: #f1f1f1;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.contenido {
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
-}
-
-.texto-nota h1 {
-    font-size: 2.8em;
-    color: #4a4a4a;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-}
-
-.texto-nota .subtitulo {
-    font-size: 1.3em;
-    color: #333;
-    font-weight: 400;
-    margin-bottom: 25px;
-    line-height: 1.6;
-}
-
-.imagen-destacada img {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.cuerpo-nota .descripcion {
-    background-color: #fff;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    line-height: 1.8;
-}
-
-.cuerpo-nota .descripcion p {
-    font-size: 1.2em;
-    color: #555;
-    margin-bottom: 20px;
-    text-align: justify;
-}
-
-.galeria-imagenes {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-}
-
-.galeria-imagenes img {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-}
-
-.nota-julion-alvarez {
-    font-family: 'Montserrat', sans-serif;
-    margin: 40px auto;
-    max-width: 1100px;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.contenido {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-}
-
-.encabezado-nota h1 {
-    font-size: 2.5em;
-    color: #2b2b2b;
-    text-align: center;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 15px;
-}
-
-.encabezado-nota .subtitulo {
-    font-size: 1.4em;
-    color: #555;
-    text-align: center;
-    margin-bottom: 25px;
-    line-height: 1.7;
-}
-
-.imagen-principal img {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.texto-nota {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    line-height: 1.8;
-    color: #333;
-}
-
-.texto-nota p {
-    font-size: 1.2em;
-    margin-bottom: 20px;
-    text-align: justify;
-}
-
-.galeria-imagenes {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-}
-
-.galeria-imagenes img {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-}
-
-.nota-banda-ms {
-    font-family: 'Montserrat', sans-serif;
-    background-color: #fcfcfc;
-    color: #444;
-    padding: 30px 0;
-    line-height: 1.6;
-}
-
-.encabezado {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.encabezado h1 {
-    font-size: 2.8em;
-    color: #283593;
-    font-weight: bold;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-}
-
-.info {
-    font-size: 1.1em;
-    color: #555;
-    font-weight: 600;
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-top: 10px;
-}
-
-.info p {
-    margin: 0;
-}
-
-.contenido {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.texto {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    font-size: 1.1em;
-}
-
-.imagen-principal img {
-    width: 100%;
-    border-radius: 15px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.separador {
-    border-top: 3px solid #283593;
-    margin: 40px 0;
-}
-
-.galeria {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 20px;
-}
-
-.item-galeria {
-    flex: 1;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.item-galeria img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    border-radius: 15px;
-}
-
-.seccion-podcast {
-    font-family: 'Montserrat', sans-serif;
-    background-color: #f9f9f9;
-    color: #333;
-    padding: 40px 0;
-    line-height: 1.6;
-}
-
-.podcast-info {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.titulo-podcast {
-    font-size: 2.5em;
-    color: #1e3a8a;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-}
-
-.descripcion-podcast {
-    font-size: 1.2em;
-    color: #555;
-    max-width: 800px;
-    margin: 0 auto;
-    font-weight: 500;
-}
-
-.contenido-podcast {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.texto-podcast {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    font-size: 1.1em;
-    color: #444;
-}
-
-.texto-podcast h2 {
-    font-size: 1.8em;
-    color: #1e3a8a;
-    margin-bottom: 20px;
-}
-
-.imagen-podcast img {
-    width: 100%;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 768px) {
-    .contenido-podcast {
-        grid-template-columns: 1fr;
-    }
 }

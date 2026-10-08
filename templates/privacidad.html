@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block descripcion %}Aviso de privacidad de JM Architects: qué datos personales recabamos, para qué los usamos y cómo ejercer tus derechos.{% endblock %}
+{% block content %}
+<section id="parallax">
+    <h1>AVISO DE PRIVACIDAD</h1>
+</section>
+<section class="sobre-nosotros aviso-privacidad">
+    <h2>AVISO DE PRIVACIDAD INTEGRAL</h2>
+    <div class="contenido">
+        <div class="texto">
+            <h3>Responsable</h3>
+            <p>{{ sitio.razon_social or sitio.nombre }}{% if sitio.razon_social %} (nombre comercial "{{ sitio.nombre }}"){% endif %}, con domicilio en {{ sitio.direccion }}, C.P. {{ sitio.cp }}, {{ sitio.ciudad }}, {{ sitio.estado }}, México, es responsable del tratamiento de los datos personales que nos proporcionas, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.</p>
+
+            <h3>Datos personales que recabamos</h3>
+            <ul>
+                <li>Formulario de contacto: nombre, correo electrónico, teléfono, servicio de interés, el mensaje que nos escribes y, en su caso, los archivos que adjuntes (planos, escrituras o imágenes).</li>
+                <li>Reseñas: el nombre que indiques, tu calificación y tu comentario.</li>
+                <li>Datos técnicos: una huella cifrada de tu dirección IP, que usamos únicamente para evitar abusos y envíos automatizados. No guardamos tu dirección IP en claro.</li>
+            </ul>
+            <p>No solicitamos datos personales sensibles. Te pedimos no incluirlos en tus mensajes o archivos.</p>
+
+            <h3>Finalidades</h3>
+            <p>Usamos tus datos para: atender tu solicitud de información o cotización; contactarte y dar seguimiento a los servicios que solicites; y, en el caso de las reseñas, publicar tu nombre, calificación y comentario en este sitio después de revisarlos. No usamos tus datos con fines de mercadotecnia ni publicidad.</p>
+
+            <h3>Transferencias y proveedores</h3>
+            <p>No vendemos ni transferimos tus datos personales a terceros. Para operar el sitio utilizamos proveedores que tratan la información por nuestra cuenta y bajo nuestras instrucciones: alojamiento web (Vercel), base de datos (Neon) y envío de correos (Resend). Sus servidores pueden ubicarse fuera de México.</p>
+
+            <h3>Derechos ARCO y revocación del consentimiento</h3>
+            <p>Puedes acceder, rectificar, cancelar u oponerte al uso de tus datos personales (derechos ARCO), así como revocar tu consentimiento, enviando una solicitud a <a href="mailto:{{ sitio.correo }}">{{ sitio.correo }}</a> con tu nombre, un medio para responderte, una copia de tu identificación y la descripción clara de lo que solicitas. Te responderemos en un plazo máximo de 20 días hábiles. También puedes pedirnos en cualquier momento que retiremos tu reseña del sitio.</p>
+
+            <h3>Conservación</h3>
+            <p>Conservamos tus datos solo durante el tiempo necesario para atender tu solicitud y dar seguimiento al servicio, y después los eliminamos.</p>
+
+            <h3>Cookies</h3>
+            <p>Este sitio usa únicamente una cookie técnica de sesión, necesaria para el funcionamiento de los formularios y del acceso del personal. No usamos cookies de publicidad ni de rastreo.</p>
+
+            <h3>Cambios a este aviso</h3>
+            <p>Cualquier cambio a este aviso de privacidad se publicará en esta misma página.</p>
+            <p><em>Última actualización: {{ sitio.aviso_actualizado }}.</em></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

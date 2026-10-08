@@ -2,11 +2,18 @@
 # Flask + PostgreSQL (Neon) + Resend, desplegable en Vercel mediante api/index.py.
 import base64
 import binascii
+import hashlib
+import json
+import math
 import os
+import re
 import secrets
+import unicodedata
 from datetime import date, datetime
 from functools import wraps
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
+from urllib.request import Request, urlopen
+from zoneinfo import ZoneInfo
 
 import click
 import psycopg
@@ -21,19 +28,22 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_from_directory,
     session,
     url_for,
 )
-from markupsafe import escape
+from markupsafe import Markup, escape
 from psycopg.rows import dict_row
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 # Cargar variables locales desde .env; en Vercel se usan las variables configuradas en el proyecto.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 EN_VERCEL = bool(os.environ.get("VERCEL"))
+ZONA = ZoneInfo("America/Monterrey")
 
 app = Flask(__name__)
 
@@ -53,7 +63,24 @@ app.config.update(
 )
 
 
-# ---- Contenido fijo del sitio ----
+# ---- Datos del negocio ----
+SITIO = {
+    "nombre": "JM Architects",
+    "telefono": "+52 828 131 1613",
+    "whatsapp": "528281311613",
+    "correo": "jmarchitects.proyectos@gmail.com",
+    "direccion": "Ignacio Comonfort 232, Lázaro Cárdenas 1er Sector",
+    "ciudad": "Cadereyta Jiménez",
+    "estado": "Nuevo León",
+    "cp": "67483",
+    "instagram": "https://www.instagram.com/architects.jm/",
+    # Pon aquí la URL de la página de Facebook del cliente; mientras esté vacía no se muestra el ícono.
+    "facebook": "",
+    # Nombre legal del responsable (persona física o razón social) para el aviso de privacidad.
+    "razon_social": "",
+    "aviso_actualizado": "8 de octubre de 2026",
+}
+
 SERVICIOS = [
     {"titulo": "Urbanización", "descripcion": "Proyecto y gestión de obras de urbanización: vialidades, infraestructura y factibilidades ante las autoridades.", "icono": "fa-city"},
     {"titulo": "Lotificación de terrenos", "descripcion": "Diseñamos la distribución de lotes y acompañamos el trámite para que cada fracción pueda escriturarse por separado.", "icono": "fa-border-all"},
@@ -66,31 +93,6 @@ SERVICIOS = [
 
 TIPOS_SERVICIO = [s["titulo"] for s in SERVICIOS] + ["Otro"]
 
-ARTICULOS = [
-    {
-        "slug": "dividir-terreno-nuevo-leon",
-        "titulo": "¿Quieres dividir un terreno en Nuevo León? Lo que dice la Ley antes de firmar",
-        "titulo_corto": "¿Quieres dividir un terreno en Nuevo León?",
-        "extracto": "Lo que dice la Ley antes de firmar.",
-        "subtitulo": "El problema: La historia del \"terreno desaparecido\" y la trampa del cálculo a ojo",
-        "imagen": "IMG/front-view-blurry-lawyer-working.jpg",
-        "slider": ["IMG/somos_negro.png", "IMG/somos_blanco.png"],
-        "parrafos": [
-            "Es una escena clásica en muchas familias: un propietario decide heredar o vender una parte de su propiedad creyendo que tiene, por ejemplo, 500m2 disponibles. Todo se planea sobre la marcha basándose en cercas antiguas, referencias de vecinos o documentos viejos. Sin embargo, al momento de realizar la medición técnica previa al diseño o al trámite formal, la realidad aparece: el terreno mide 430m2.",
-            "Esta diferencia no solo genera desacuerdos familiares o contratiempos con los compradores, sino que altera por completo cualquier proyecto. Confiar en \"medidas estimadas\" o asumir que un terreno se puede dividir simplemente tirando una barda a la mitad es uno de los errores más costosos al gestionar un patrimonio. Sin precisión técnica, surgen problemas de retiros obligatorios, áreas de construcción reducidas y la imposibilidad de escriturar de forma independiente.",
-        ],
-        "secciones": [
-            {
-                "titulo": "El respaldo legal: Lo que establece la Ley de Asentamientos Humanos de Nuevo León",
-                "parrafos": [
-                    "Para realizar cualquier división de manera válida, la costumbre no basta; es indispensable cumplir con el marco legal vigente en el estado. La Ley de Asentamientos Humanos, Ordenamiento Territorial y Desarrollo Urbano para el Estado de Nuevo León regula estrictamente este tipo de procedimientos:",
-                    "Definición legal de subdivisión (Artículo 230, Fracción II): La ley define la subdivisión como la partición de un predio ubicado dentro del límite de un centro de población en dos o más fracciones, siempre y cuando dicha partición no requiera la apertura de nuevas vías públicas. Si el proyecto exige la creación de calles o infraestructura pública, se trata entonces de un fraccionamiento, el cual contempla normativas y obligaciones distintas.",
-                ],
-            }
-        ],
-    },
-]
-
 PREGUNTAS = [
     ("¿Qué pasa si hago una división \"de palabra\" o por contrato privado sin permiso municipal?", "El Artículo 305 de la Ley de Asentamientos Humanos de Nuevo León establece que ninguna división surtirá efectos legales ni podrá inscribirse en el Instituto Registral y Catastral (IRCNL) sin la autorización del municipio. Sin esta licencia, las nuevas partes no podrán obtener escrituras individuales, servicios públicos a su nombre ni permisos de construcción futuros."),
     ("¿Por qué es obligatorio hacer un levantamiento topográfico antes de tramitar la subdivisión?", "Porque las medidas escritas en documentos antiguos o marcadas por cercas viejas suelen diferir de la realidad física. Un levantamiento topográfico con equipo de precisión determina los metros cuadrados reales, el frente, el fondo y los límites exactos del predio, evitando sorpresas al diseñar o al tramitar permisos."),
@@ -102,6 +104,21 @@ PREGUNTAS = [
 
 MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
          "septiembre", "octubre", "noviembre", "diciembre"]
+
+PROYECTOS_POR_PAGINA = 6
+ARTICULOS_POR_PAGINA = 9
+IMAGEN_ARTICULO_DEFAULT = "IMG/front-view-blurry-lawyer-working.jpg"
+
+# Límites anti-abuso (por IP)
+LOGIN_MAX_FALLOS, LOGIN_VENTANA_MIN = 5, 15
+MENSAJES_MAX, MENSAJES_VENTANA_MIN = 5, 60
+RESENAS_MAX, RESENAS_VENTANA_MIN = 3, 60
+
+EXTENSIONES_ADJUNTO = {".pdf", ".jpg", ".jpeg", ".png", ".webp", ".dwg", ".dxf", ".doc", ".docx"}
+
+
+def hoy():
+    return datetime.now(ZONA).date()
 
 
 # ---- Conexión a base de datos (Neon / PostgreSQL) ----
@@ -140,7 +157,17 @@ def ejecutar(sql, params=()):
     return afectadas
 
 
-# ---- Seguridad: sesión y CSRF ----
+def insertar(sql, params=()):
+    """Ejecuta un INSERT ... RETURNING id y devuelve el id."""
+    db = get_db()
+    with db.cursor() as cursor:
+        cursor.execute(sql, params)
+        nuevo = cursor.fetchone()["id"]
+    db.commit()
+    return nuevo
+
+
+# ---- Seguridad: sesión, CSRF, límites ----
 def csrf_token():
     if "_csrf" not in session:
         session["_csrf"] = secrets.token_urlsafe(32)
@@ -155,11 +182,48 @@ def volver(destino_por_defecto="home"):
     return redirect(url_for(destino_por_defecto))
 
 
+def ip_cliente():
+    # Vercel reemplaza X-Forwarded-For con la IP real del visitante.
+    return request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+
+
+def ip_hash():
+    """Huella de la IP (no se guarda la IP en claro)."""
+    return hashlib.sha256((app.secret_key + "|" + ip_cliente()).encode()).hexdigest()[:32]
+
+
+def turnstile_activo():
+    return bool(os.environ.get("TURNSTILE_SITE_KEY") and os.environ.get("TURNSTILE_SECRET_KEY"))
+
+
+def verificar_turnstile():
+    """Valida el captcha de Cloudflare Turnstile si está configurado."""
+    if not turnstile_activo():
+        return True
+    token = request.form.get("cf-turnstile-response", "")
+    if not token:
+        return False
+    datos = urlencode({
+        "secret": os.environ["TURNSTILE_SECRET_KEY"],
+        "response": token,
+        "remoteip": ip_cliente(),
+    }).encode()
+    try:
+        peticion = Request("https://challenges.cloudflare.com/turnstile/v0/siteverify", data=datos)
+        with urlopen(peticion, timeout=8) as respuesta:
+            return bool(json.load(respuesta).get("success"))
+    except Exception as e:
+        app.logger.error("Error verificando Turnstile: %s", e)
+        return False
+
+
 @app.before_request
 def proteger_formularios():
     if request.method == "POST":
         token = request.form.get("csrf_token", "")
-        if not secrets.compare_digest(token, session.get("_csrf", "")):
+        esperado = session.get("_csrf", "")
+        # Ambos deben existir: dos valores vacíos no cuentan como coincidencia.
+        if not token or not esperado or not secrets.compare_digest(token, esperado):
             flash("El formulario expiró. Vuelve a intentarlo.", "error")
             return volver()
 
@@ -174,39 +238,107 @@ def login_requerido(vista):
 
 
 @app.after_request
-def cabeceras_seguridad(response):
+def cabeceras(response):
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    if request.path.startswith("/static/") and response.status_code == 200:
+        if request.args.get("v"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        else:
+            response.headers["Cache-Control"] = "public, max-age=86400, s-maxage=604800"
     return response
 
 
 # ---- Utilidades de plantillas ----
+def static_v(filename):
+    """URL de un archivo estático con versión, para poder cachearlo mucho tiempo."""
+    try:
+        version = int(os.path.getmtime(os.path.join(app.static_folder, filename)))
+    except OSError:
+        version = 0
+    return url_for("static", filename=filename, v=version)
+
+
+def url_sitio():
+    return (os.environ.get("SITE_URL") or request.url_root).rstrip("/")
+
+
 @app.context_processor
 def inyectar_globales():
-    return {"year": datetime.now().year, "csrf_token": csrf_token}
+    return {
+        "year": hoy().year,
+        "csrf_token": csrf_token,
+        "static_v": static_v,
+        "sitio": SITIO,
+        "url_sitio": url_sitio,
+        "turnstile_site_key": os.environ.get("TURNSTILE_SITE_KEY") if turnstile_activo() else None,
+    }
+
+
+def en_zona(valor):
+    if isinstance(valor, datetime):
+        if valor.tzinfo is not None:
+            valor = valor.astimezone(ZONA)
+        return valor.date()
+    return valor
 
 
 @app.template_filter("fecha_larga")
 def fecha_larga(valor):
     if not valor:
         return ""
-    if isinstance(valor, datetime):
-        valor = valor.date()
+    valor = en_zona(valor)
     return f"{valor.day} de {MESES[valor.month - 1]} de {valor.year}"
 
 
 @app.template_filter("fecha_corta")
 def fecha_corta(valor):
-    return valor.strftime("%d/%m/%Y") if valor else ""
+    return en_zona(valor).strftime("%d/%m/%Y") if valor else ""
 
 
-def version_imagen(proyecto):
-    actualizado = proyecto.get("actualizado")
+@app.template_filter("contenido_articulo")
+def contenido_articulo(texto):
+    """Convierte el texto del artículo en párrafos; las líneas que empiezan con '## ' son subtítulos."""
+    partes = []
+    for bloque in re.split(r"\n\s*\n", (texto or "").strip()):
+        bloque = bloque.strip()
+        if not bloque:
+            continue
+        if bloque.startswith("## "):
+            partes.append(Markup("<h3>{}</h3>").format(bloque[3:].strip()))
+        else:
+            lineas = Markup("<br>").join(escape(l.strip()) for l in bloque.splitlines())
+            partes.append(Markup("<p>{}</p>").format(lineas))
+    return Markup("").join(partes)
+
+
+def version_imagen(registro):
+    actualizado = registro.get("actualizado")
     return int(actualizado.timestamp()) if actualizado else 0
 
 
 app.jinja_env.globals["version_imagen"] = version_imagen
+
+
+def paginar(total, por_pagina):
+    paginas = max(1, math.ceil(total / por_pagina))
+    pagina = min(max(1, request.args.get("pagina", 1, type=int)), paginas)
+    return pagina, paginas, (pagina - 1) * por_pagina
+
+
+def slugify(texto):
+    texto = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode().lower()
+    texto = re.sub(r"[^a-z0-9]+", "-", texto).strip("-")
+    return texto[:80].strip("-") or "articulo"
+
+
+def slug_unico(titulo):
+    base = slugify(titulo)
+    slug, n = base, 2
+    while consultar("SELECT 1 FROM articulos WHERE slug = %s", (slug,), uno=True):
+        slug, n = f"{base}-{n}", n + 1
+    return slug
 
 
 # ---- Imágenes ----
@@ -236,8 +368,30 @@ def leer_imagen(archivo):
         return None
     tipo = detectar_tipo_imagen(datos)
     if tipo is None:
+        if archivo.filename.lower().endswith((".heic", ".heif")):
+            raise ValueError("Las fotos HEIC de iPhone no son compatibles. Conviértelas a JPG o súbelas desde el iPhone (se convierten solas).")
         raise ValueError("La imagen debe ser JPG, PNG, WEBP o GIF.")
     return f"data:{tipo};base64,{base64.b64encode(datos).decode('ascii')}"
+
+
+def servir_imagen(imagen):
+    if not imagen:
+        abort(404)
+    if imagen.startswith(("http://", "https://", "/")):
+        return redirect(imagen)
+    try:
+        cabecera, contenido = imagen.split(",", 1)
+        tipo = cabecera.split(":", 1)[1].split(";", 1)[0]
+        datos = base64.b64decode(contenido)
+    except (ValueError, IndexError, binascii.Error):
+        abort(404)
+    respuesta = Response(datos, mimetype=tipo)
+    if request.args.get("v"):
+        # s-maxage permite que el CDN de Vercel la guarde y no se consulte Neon en cada visita.
+        respuesta.headers["Cache-Control"] = "public, max-age=31536000, s-maxage=31536000, immutable"
+    else:
+        respuesta.headers["Cache-Control"] = "public, max-age=300, s-maxage=300"
+    return respuesta
 
 
 # ---- Rutas HTML ----
@@ -256,22 +410,14 @@ def services():
     return render_template("services.html", title="Servicios", servicios=SERVICIOS)
 
 
-@app.route("/blog")
-def blog():
-    return render_template("blog.html", title="Blog", articulos=ARTICULOS)
-
-
-@app.route("/blog/<slug>")
-def article(slug):
-    seleccionado = next((a for a in ARTICULOS if a["slug"] == slug), None)
-    if seleccionado is None:
-        abort(404)
-    return render_template("article.html", title=seleccionado["titulo"], articulo=seleccionado)
-
-
 @app.route("/preguntas")
 def questions():
     return render_template("questions.html", title="Preguntas frecuentes", faqs=PREGUNTAS)
+
+
+@app.route("/aviso-de-privacidad")
+def privacidad():
+    return render_template("privacidad.html", title="Aviso de privacidad")
 
 
 # Compatibilidad con los enlaces del prototipo estático.
@@ -291,21 +437,54 @@ def ruta_anterior(pagina):
 
 @app.route("/nota_1.html")
 def nota_anterior():
-    return redirect(url_for("article", slug=ARTICULOS[0]["slug"]), code=301)
+    return redirect(url_for("article", slug="dividir-terreno-nuevo-leon"), code=301)
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(app.static_folder, "favicon.ico", mimetype="image/x-icon", max_age=604800)
+
+
+@app.route("/robots.txt")
+def robots():
+    contenido = f"User-agent: *\nDisallow: /admin\nDisallow: /login\nSitemap: {url_sitio()}/sitemap.xml\n"
+    return Response(contenido, mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    urls = [(url_for(e), None) for e in ("home", "about", "services", "proyectos", "blog", "reviews_page", "questions", "contact")]
+    try:
+        for a in consultar("SELECT slug, actualizado FROM articulos WHERE publicado ORDER BY fecha DESC"):
+            urls.append((url_for("article", slug=a["slug"]), en_zona(a["actualizado"])))
+    except Exception as e:
+        app.logger.error("Error al generar sitemap: %s", e)
+    base = url_sitio()
+    entradas = "".join(
+        f"<url><loc>{escape(base + ruta)}</loc>" + (f"<lastmod>{fecha.isoformat()}</lastmod>" if fecha else "") + "</url>"
+        for ruta, fecha in urls
+    )
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{entradas}</urlset>'
+    return Response(xml, mimetype="application/xml")
 
 
 # ---- Proyectos (publicaciones) ----
 @app.route("/proyectos")
 def proyectos():
     try:
+        total = consultar("SELECT COUNT(*) AS n FROM proyectos", uno=True)["n"]
+        pagina, paginas, desde = paginar(total, PROYECTOS_POR_PAGINA)
         lista = consultar(
-            "SELECT id, titulo, descripcion, fecha, actualizado FROM proyectos ORDER BY fecha DESC, id DESC"
+            "SELECT id, titulo, descripcion, fecha, actualizado FROM proyectos "
+            "ORDER BY fecha DESC, id DESC LIMIT %s OFFSET %s",
+            (PROYECTOS_POR_PAGINA, desde),
         )
         error_db = False
     except Exception as e:
         app.logger.error("Error al consultar proyectos: %s", e)
-        lista, error_db = [], True
-    return render_template("proyectos.html", title="Proyectos", proyectos=lista, error_db=error_db)
+        lista, error_db, pagina, paginas = [], True, 1, 1
+    return render_template("proyectos.html", title="Proyectos", proyectos=lista, error_db=error_db,
+                           pagina=pagina, paginas=paginas)
 
 
 @app.route("/proyectos/<int:proyecto_id>/imagen")
@@ -315,23 +494,56 @@ def imagen_proyecto(proyecto_id):
     except Exception as e:
         app.logger.error("Error al consultar la imagen del proyecto %s: %s", proyecto_id, e)
         abort(503)
-    if not fila or not fila["imagen_url"]:
-        abort(404)
-    imagen = fila["imagen_url"]
-    if imagen.startswith(("http://", "https://", "/")):
-        return redirect(imagen)
+    return servir_imagen(fila["imagen_url"] if fila else None)
+
+
+# ---- Blog ----
+@app.route("/blog")
+def blog():
     try:
-        cabecera, contenido = imagen.split(",", 1)
-        tipo = cabecera.split(":", 1)[1].split(";", 1)[0]
-        datos = base64.b64decode(contenido)
-    except (ValueError, IndexError, binascii.Error):
+        total = consultar("SELECT COUNT(*) AS n FROM articulos WHERE publicado", uno=True)["n"]
+        pagina, paginas, desde = paginar(total, ARTICULOS_POR_PAGINA)
+        lista = consultar(
+            "SELECT id, slug, titulo, extracto, fecha, actualizado FROM articulos WHERE publicado "
+            "ORDER BY fecha DESC, id DESC LIMIT %s OFFSET %s",
+            (ARTICULOS_POR_PAGINA, desde),
+        )
+        error_db = False
+    except Exception as e:
+        app.logger.error("Error al consultar artículos: %s", e)
+        lista, error_db, pagina, paginas = [], True, 1, 1
+    return render_template("blog.html", title="Blog", articulos=lista, error_db=error_db,
+                           pagina=pagina, paginas=paginas)
+
+
+@app.route("/blog/<slug>")
+def article(slug):
+    try:
+        articulo = consultar(
+            "SELECT id, slug, titulo, extracto, contenido, fecha, actualizado FROM articulos "
+            "WHERE slug = %s AND publicado",
+            (slug,), uno=True,
+        )
+    except Exception as e:
+        app.logger.error("Error al consultar el artículo %s: %s", slug, e)
+        abort(503)
+    if articulo is None:
         abort(404)
-    respuesta = Response(datos, mimetype=tipo)
-    if request.args.get("v"):
-        respuesta.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-    else:
-        respuesta.headers["Cache-Control"] = "public, max-age=300"
-    return respuesta
+    return render_template("article.html", title=articulo["titulo"], articulo=articulo)
+
+
+@app.route("/articulos/<int:articulo_id>/imagen")
+def imagen_articulo(articulo_id):
+    try:
+        fila = consultar("SELECT imagen_url FROM articulos WHERE id = %s", (articulo_id,), uno=True)
+    except Exception as e:
+        app.logger.error("Error al consultar la imagen del artículo %s: %s", articulo_id, e)
+        abort(503)
+    if fila is None:
+        abort(404)
+    if not fila["imagen_url"]:
+        return redirect(url_for("static", filename=IMAGEN_ARTICULO_DEFAULT))
+    return servir_imagen(fila["imagen_url"])
 
 
 # ---- Reseñas ----
@@ -357,13 +569,24 @@ def reviews_page():
             flash("La reseña debe tener entre 1 y 500 caracteres.", "error")
         elif not 1 <= calificacion <= 5:
             flash("Selecciona una calificación de 1 a 5 estrellas.", "error")
+        elif not verificar_turnstile():
+            flash("No pudimos verificar que no eres un robot. Intenta de nuevo.", "error")
         else:
             try:
-                ejecutar(
-                    "INSERT INTO reviews (nombre, comentario, calificacion) VALUES (%s, %s, %s)",
-                    (nombre, comentario, calificacion),
-                )
-                flash("Gracias por compartir tu experiencia.", "success")
+                huella = ip_hash()
+                recientes = consultar(
+                    "SELECT COUNT(*) AS n FROM reviews WHERE ip_hash = %s "
+                    "AND fecha > NOW() - make_interval(mins => %s)",
+                    (huella, RESENAS_VENTANA_MIN), uno=True,
+                )["n"]
+                if recientes >= RESENAS_MAX:
+                    flash("Ya recibimos tus reseñas recientes. Intenta de nuevo más tarde.", "error")
+                else:
+                    ejecutar(
+                        "INSERT INTO reviews (nombre, comentario, calificacion, ip_hash) VALUES (%s, %s, %s, %s)",
+                        (nombre, comentario, calificacion, huella),
+                    )
+                    flash("¡Gracias por compartir tu experiencia! Tu reseña se publicará en cuanto la revisemos.", "success")
             except Exception as e:
                 app.logger.error("Error al guardar reseña: %s", e)
                 flash("No pudimos guardar tu reseña en este momento. Intenta más tarde.", "error")
@@ -374,17 +597,18 @@ def reviews_page():
         filtro = None
 
     try:
-        todas = consultar("SELECT calificacion FROM reviews")
+        todas = consultar("SELECT calificacion FROM reviews WHERE aprobada")
         if filtro:
             # FLOOR coincide con las barras: 4.5 cuenta como 4 estrellas.
             resenas = consultar(
                 "SELECT id, nombre, comentario, calificacion, fecha FROM reviews "
-                "WHERE FLOOR(calificacion) = %s ORDER BY fecha DESC, id DESC",
+                "WHERE aprobada AND FLOOR(calificacion) = %s ORDER BY fecha DESC, id DESC",
                 (filtro,),
             )
         else:
             resenas = consultar(
-                "SELECT id, nombre, comentario, calificacion, fecha FROM reviews ORDER BY fecha DESC, id DESC"
+                "SELECT id, nombre, comentario, calificacion, fecha FROM reviews "
+                "WHERE aprobada ORDER BY fecha DESC, id DESC"
             )
         error_db = False
     except Exception as e:
@@ -414,81 +638,129 @@ def reviews_page():
     )
 
 
-# ---- Contacto (correo con Resend) ----
+# ---- Contacto (se guarda en la base de datos y se envía por correo con Resend) ----
+def enviar_correo_contacto(datos, adjunto):
+    resend_api_key = os.environ.get("RESEND_API_KEY")
+    if not resend_api_key:
+        app.logger.warning("RESEND_API_KEY no está configurada; el mensaje solo se guardó en la base de datos.")
+        return False
+
+    html_content = """
+    <html>
+    <body style="font-family: Montserrat, Arial, sans-serif; background:#f3f3f3; padding:20px;">
+      <div style="max-width:700px;margin:20px auto;background:#ffffff;border-radius:8px;padding:22px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="color:#000000;margin-bottom:6px;text-transform:uppercase;">Nueva solicitud de contacto</h2>
+        <p style="color:#555;margin-top:0;">Has recibido un nuevo mensaje desde el formulario del sitio web.</p>
+        <table style="width:100%;margin-top:12px;border-collapse:collapse;">
+          <tr><td style="padding:8px;border-top:1px solid #ddd;"><strong>Nombre</strong></td><td style="padding:8px;border-top:1px solid #ddd;">{NOMBRE}</td></tr>
+          <tr><td style="padding:8px;border-top:1px solid #ddd;"><strong>Correo</strong></td><td style="padding:8px;border-top:1px solid #ddd;">{CORREO}</td></tr>
+          <tr><td style="padding:8px;border-top:1px solid #ddd;"><strong>Teléfono</strong></td><td style="padding:8px;border-top:1px solid #ddd;">{TELEFONO}</td></tr>
+          <tr><td style="padding:8px;border-top:1px solid #ddd;"><strong>Servicio</strong></td><td style="padding:8px;border-top:1px solid #ddd;">{SERVICIO}</td></tr>
+        </table>
+        <h4 style="margin-top:18px;margin-bottom:8px;color:#222;">Mensaje</h4>
+        <div style="background:#f9f9f9;border:1px solid #ddd;padding:12px;border-radius:6px;color:#333;">{MENSAJE}</div>
+        <p style="font-size:12px;color:#777;margin-top:18px;">Enviado automáticamente desde el formulario de contacto — JM Architects. También puedes consultarlo en el panel administrativo.</p>
+      </div>
+    </body>
+    </html>
+    """.format(
+        NOMBRE=escape(datos["nombre"]),
+        CORREO=escape(datos["correo"]),
+        TELEFONO=escape(datos["telefono"] or "—"),
+        SERVICIO=escape(datos["servicio"] or "—"),
+        MENSAJE=escape(datos["mensaje"]).replace("\n", "<br>"),
+    )
+
+    resend.api_key = resend_api_key
+    email_params = {
+        "from": os.environ.get("RESEND_FROM", "JM Architects <onboarding@resend.dev>"),
+        "to": [os.environ.get("RECEIVER_EMAIL", SITIO["correo"])],
+        "subject": f"Solicitud de contacto - {datos['nombre']}",
+        "html": html_content,
+        "reply_to": datos["correo"],
+    }
+    if adjunto:
+        email_params["attachments"] = [{"filename": adjunto[0], "content": list(adjunto[1])}]
+
+    try:
+        resend.Emails.send(email_params)
+        return True
+    except Exception as e:
+        app.logger.error("Error enviando correo con Resend: %s %s", type(e).__name__, e)
+        return False
+
+
 @app.route("/contacto", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        nombre = request.form.get("nombre", "").strip()
-        correo = request.form.get("correo", "").strip()
-        telefono = request.form.get("telefono", "").strip()
-        servicio = request.form.get("servicio", "").strip()
-        mensaje = request.form.get("mensaje", "").strip()
-
-        if not nombre or len(nombre) > 80:
-            flash("Escribe tu nombre para poder contactarte.", "error")
-            return volver("contact")
-        if "@" not in correo or len(correo) > 120:
-            flash("Escribe un correo electrónico válido.", "error")
-            return volver("contact")
-        if not mensaje or len(mensaje) > 2000:
-            flash("Cuéntanos brevemente qué necesitas, en un máximo de 2000 caracteres.", "error")
-            return volver("contact")
-
-        resend_api_key = os.environ.get("RESEND_API_KEY")
-        receptor = os.environ.get("RECEIVER_EMAIL", "jmarchitects.proyectos@gmail.com")
-        remitente = os.environ.get("RESEND_FROM", "JM Architects <onboarding@resend.dev>")
-
-        if not resend_api_key:
-            app.logger.error("RESEND_API_KEY no está configurada.")
-            flash("El formulario aún no está disponible. Escríbenos por WhatsApp o al correo de contacto.", "error")
-            return volver("contact")
-
-        html_content = """
-        <html>
-        <body style="font-family: Montserrat, Arial, sans-serif; background:#f3f3f3; padding:20px;">
-          <div style="max-width:700px;margin:20px auto;background:#ffffff;border-radius:8px;padding:22px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-            <h2 style="color:#000000;margin-bottom:6px;text-transform:uppercase;">Nueva solicitud de contacto</h2>
-            <p style="color:#555;margin-top:0;">Has recibido un nuevo mensaje desde el formulario del sitio web.</p>
-            <table style="width:100%;margin-top:12px;border-collapse:collapse;">
-              <tr><td style="padding:8px;border-top:1px solid #ddd;"><strong>Nombre</strong></td><td style="padding:8px;border-top:1px solid #ddd;">{NOMBRE}</td></tr>
-              <tr><td style="padding:8px;border-top:1px solid #ddd;"><strong>Correo</strong></td><td style="padding:8px;border-top:1px solid #ddd;">{CORREO}</td></tr>
-              <tr><td style="padding:8px;border-top:1px solid #ddd;"><strong>Teléfono</strong></td><td style="padding:8px;border-top:1px solid #ddd;">{TELEFONO}</td></tr>
-              <tr><td style="padding:8px;border-top:1px solid #ddd;"><strong>Servicio</strong></td><td style="padding:8px;border-top:1px solid #ddd;">{SERVICIO}</td></tr>
-            </table>
-            <h4 style="margin-top:18px;margin-bottom:8px;color:#222;">Mensaje</h4>
-            <div style="background:#f9f9f9;border:1px solid #ddd;padding:12px;border-radius:6px;color:#333;">{MENSAJE}</div>
-            <p style="font-size:12px;color:#777;margin-top:18px;">Enviado automáticamente desde el formulario de contacto — JM Architects.</p>
-          </div>
-        </body>
-        </html>
-        """.format(
-            NOMBRE=escape(nombre),
-            CORREO=escape(correo),
-            TELEFONO=escape(telefono or "—"),
-            SERVICIO=escape(servicio or "—"),
-            MENSAJE=escape(mensaje).replace("\n", "<br>"),
-        )
-
-        resend.api_key = resend_api_key
-        email_params = {
-            "from": remitente,
-            "to": [receptor],
-            "subject": f"Solicitud de contacto - {nombre}",
-            "html": html_content,
-            "reply_to": correo,
+        datos = {
+            "nombre": request.form.get("nombre", "").strip(),
+            "correo": request.form.get("correo", "").strip(),
+            "telefono": request.form.get("telefono", "").strip()[:30],
+            "servicio": request.form.get("servicio", "").strip()[:80],
+            "mensaje": request.form.get("mensaje", "").strip(),
         }
 
-        archivo = request.files.get("archivo")
-        if archivo and archivo.filename:
-            datos = archivo.read()
-            if datos:
-                email_params["attachments"] = [{"filename": archivo.filename, "content": list(datos)}]
+        error = None
+        if not datos["nombre"] or len(datos["nombre"]) > 80:
+            error = "Escribe tu nombre para poder contactarte."
+        elif "@" not in datos["correo"] or len(datos["correo"]) > 120:
+            error = "Escribe un correo electrónico válido."
+        elif not datos["mensaje"] or len(datos["mensaje"]) > 2000:
+            error = "Cuéntanos brevemente qué necesitas, en un máximo de 2000 caracteres."
+        elif not request.form.get("acepto_privacidad"):
+            error = "Para enviar tu mensaje debes aceptar el aviso de privacidad."
+        elif not verificar_turnstile():
+            error = "No pudimos verificar que no eres un robot. Intenta de nuevo."
 
+        adjunto = None
+        archivo = request.files.get("archivo")
+        if not error and archivo and archivo.filename:
+            nombre_archivo = secure_filename(archivo.filename) or "adjunto"
+            extension = os.path.splitext(archivo.filename)[1].lower()
+            if extension not in EXTENSIONES_ADJUNTO:
+                error = "El archivo adjunto debe ser PDF, imagen (JPG, PNG, WEBP), DWG, DXF o Word."
+            else:
+                contenido = archivo.read()
+                if contenido:
+                    if not nombre_archivo.lower().endswith(extension):
+                        nombre_archivo += extension
+                    adjunto = (nombre_archivo, contenido)
+
+        if error:
+            flash(error, "error")
+            return volver("contact")
+
+        guardado = False
+        huella = ip_hash()
         try:
-            resend.Emails.send(email_params)
+            recientes = consultar(
+                "SELECT COUNT(*) AS n FROM mensajes WHERE ip_hash = %s "
+                "AND fecha > NOW() - make_interval(mins => %s)",
+                (huella, MENSAJES_VENTANA_MIN), uno=True,
+            )["n"]
+            if recientes >= MENSAJES_MAX:
+                flash("Recibimos varios mensajes tuyos recientemente. Intenta de nuevo en una hora o escríbenos por WhatsApp.", "error")
+                return volver("contact")
+            mensaje_id = insertar(
+                "INSERT INTO mensajes (nombre, correo, telefono, servicio, mensaje, archivo_nombre, ip_hash) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                (datos["nombre"], datos["correo"], datos["telefono"], datos["servicio"], datos["mensaje"],
+                 adjunto[0] if adjunto else None, huella),
+            )
+            guardado = True
         except Exception as e:
-            app.logger.error("Error enviando correo con Resend: %s %s", type(e).__name__, e)
-            flash("Ocurrió un problema al enviar tu mensaje. Intenta de nuevo más tarde.", "error")
+            app.logger.error("Error al guardar el mensaje de contacto: %s", e)
+
+        enviado = enviar_correo_contacto(datos, adjunto)
+        if guardado and enviado:
+            try:
+                ejecutar("UPDATE mensajes SET enviado = TRUE WHERE id = %s", (mensaje_id,))
+            except Exception as e:
+                app.logger.error("Error al marcar el mensaje como enviado: %s", e)
+
+        if not guardado and not enviado:
+            flash("Ocurrió un problema al enviar tu mensaje. Intenta de nuevo más tarde o escríbenos por WhatsApp.", "error")
             return volver("contact")
         return redirect(url_for("contact", exito=1))
 
@@ -506,28 +778,42 @@ def login():
         usuario_input = request.form.get("usuario", "").strip()
         password_input = request.form.get("password", "")
         try:
-            user = consultar(
-                "SELECT id, usuario, password FROM usuarios WHERE usuario = %s",
-                (usuario_input,),
-                uno=True,
-            )
-            valido = False
-            if user:
-                guardada = user["password"]
-                if guardada.startswith(("scrypt:", "pbkdf2:")):
-                    valido = check_password_hash(guardada, password_input)
-                elif secrets.compare_digest(guardada, password_input):
-                    # Contraseña capturada en texto plano desde Neon: se reemplaza por su hash.
-                    valido = True
-                    ejecutar(
-                        "UPDATE usuarios SET password = %s WHERE id = %s",
-                        (generate_password_hash(password_input), user["id"]),
-                    )
-            if valido:
-                session.clear()
-                session["usuario"] = user["usuario"]
-                return redirect(url_for("admin"))
-            error = "Credenciales incorrectas"
+            huella = ip_hash()
+            ejecutar("DELETE FROM intentos_login WHERE fecha < NOW() - INTERVAL '1 day'")
+            fallos = consultar(
+                "SELECT COUNT(*) AS n FROM intentos_login WHERE ip_hash = %s "
+                "AND fecha > NOW() - make_interval(mins => %s)",
+                (huella, LOGIN_VENTANA_MIN), uno=True,
+            )["n"]
+            if fallos >= LOGIN_MAX_FALLOS:
+                error = f"Demasiados intentos fallidos. Espera {LOGIN_VENTANA_MIN} minutos e intenta de nuevo."
+            else:
+                user = consultar(
+                    "SELECT id, usuario, password FROM usuarios WHERE usuario = %s",
+                    (usuario_input,), uno=True,
+                )
+                valido = False
+                if user:
+                    guardada = user["password"]
+                    if guardada.startswith(("scrypt:", "pbkdf2:")):
+                        valido = check_password_hash(guardada, password_input)
+                    elif secrets.compare_digest(guardada, password_input):
+                        # Contraseña capturada en texto plano desde Neon: se reemplaza por su hash.
+                        valido = True
+                        ejecutar(
+                            "UPDATE usuarios SET password = %s WHERE id = %s",
+                            (generate_password_hash(password_input), user["id"]),
+                        )
+                if valido:
+                    ejecutar("DELETE FROM intentos_login WHERE ip_hash = %s", (huella,))
+                    session.clear()
+                    session["usuario"] = user["usuario"]
+                    return redirect(url_for("admin"))
+                ejecutar(
+                    "INSERT INTO intentos_login (ip_hash, usuario) VALUES (%s, %s)",
+                    (huella, usuario_input[:80]),
+                )
+                error = "Credenciales incorrectas"
         except Exception as e:
             app.logger.error("Error de base de datos en login: %s", e)
             error = "No fue posible conectar con la base de datos."
@@ -545,28 +831,36 @@ def logout():
 @app.route("/admin")
 @login_requerido
 def admin():
+    datos = {"proyectos": [], "referencias": [], "articulos": [], "mensajes": []}
     try:
-        lista_proyectos = consultar(
+        datos["proyectos"] = consultar(
             "SELECT id, titulo, descripcion, fecha, actualizado FROM proyectos ORDER BY fecha DESC, id DESC"
         )
-        lista_resenas = consultar(
-            "SELECT id, nombre, comentario, calificacion, fecha FROM reviews ORDER BY fecha DESC, id DESC"
+        datos["referencias"] = consultar(
+            "SELECT id, nombre, comentario, calificacion, fecha, aprobada FROM reviews "
+            "ORDER BY aprobada ASC, fecha DESC, id DESC"
+        )
+        datos["articulos"] = consultar(
+            "SELECT id, slug, titulo, extracto, contenido, fecha, publicado, actualizado, "
+            "(imagen_url IS NOT NULL) AS tiene_imagen FROM articulos ORDER BY fecha DESC, id DESC"
+        )
+        datos["mensajes"] = consultar(
+            "SELECT id, nombre, correo, telefono, servicio, mensaje, archivo_nombre, enviado, leido, fecha "
+            "FROM mensajes ORDER BY leido ASC, fecha DESC, id DESC"
         )
     except Exception as e:
         app.logger.error("Error al consultar la base de datos: %s", e)
         flash("No fue posible cargar la información de la base de datos.", "error")
-        lista_proyectos, lista_resenas = [], []
-    return render_template(
-        "admin.html", title="Panel administrativo", proyectos=lista_proyectos, referencias=lista_resenas
-    )
+    return render_template("admin.html", title="Panel administrativo", hoy=hoy(), **datos)
 
 
+# -- Proyectos --
 @app.route("/admin/proyectos/crear", methods=["POST"])
 @login_requerido
 def admin_crear_proyecto():
     titulo = request.form.get("titulo", "").strip()
     descripcion = request.form.get("descripcion", "").strip()
-    fecha = request.form.get("fecha", "").strip() or date.today().isoformat()
+    fecha = request.form.get("fecha", "").strip() or hoy().isoformat()
 
     if not titulo or len(titulo) > 150:
         flash("El título es obligatorio (máximo 150 caracteres).", "error")
@@ -646,6 +940,112 @@ def eliminar_proyecto(id):
     return redirect(url_for("admin", vista="vista-eliminar-proyecto"))
 
 
+# -- Blog --
+def datos_articulo():
+    return {
+        "titulo": request.form.get("titulo", "").strip(),
+        "extracto": request.form.get("extracto", "").strip(),
+        "contenido": request.form.get("contenido", "").strip(),
+        "fecha": request.form.get("fecha", "").strip() or hoy().isoformat(),
+        "publicado": bool(request.form.get("publicado")),
+    }
+
+
+def validar_articulo(a):
+    if not a["titulo"] or len(a["titulo"]) > 200:
+        return "El título es obligatorio (máximo 200 caracteres)."
+    if len(a["extracto"]) > 300:
+        return "El resumen debe tener como máximo 300 caracteres."
+    if not a["contenido"]:
+        return "El contenido del artículo es obligatorio."
+    return None
+
+
+@app.route("/admin/articulos/crear", methods=["POST"])
+@login_requerido
+def admin_crear_articulo():
+    a = datos_articulo()
+    error = validar_articulo(a)
+    try:
+        imagen_url = None if error else leer_imagen(request.files.get("imagen"))
+    except ValueError as e:
+        error = str(e)
+    if error:
+        flash(error, "error")
+        return redirect(url_for("admin", vista="vista-crear-articulo"))
+    try:
+        ejecutar(
+            "INSERT INTO articulos (slug, titulo, extracto, contenido, fecha, publicado, imagen_url) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            (slug_unico(a["titulo"]), a["titulo"], a["extracto"], a["contenido"], a["fecha"], a["publicado"], imagen_url),
+        )
+        flash("Artículo guardado correctamente." if a["publicado"] else "Artículo guardado como borrador.", "success")
+    except Exception as e:
+        app.logger.error("Error al crear el artículo: %s", e)
+        flash("No se pudo guardar el artículo.", "error")
+        return redirect(url_for("admin", vista="vista-crear-articulo"))
+    return redirect(url_for("admin", vista="vista-lista-articulos"))
+
+
+@app.route("/admin/articulos/editar/<int:id>", methods=["POST"])
+@login_requerido
+def editar_articulo(id):
+    a = datos_articulo()
+    error = validar_articulo(a)
+    try:
+        imagen_url = None if error else leer_imagen(request.files.get("imagen"))
+    except ValueError as e:
+        error = str(e)
+    if error:
+        flash(error, "error")
+        return redirect(url_for("admin", vista="vista-lista-articulos"))
+    try:
+        campos = "titulo = %s, extracto = %s, contenido = %s, fecha = %s, publicado = %s, actualizado = NOW()"
+        params = [a["titulo"], a["extracto"], a["contenido"], a["fecha"], a["publicado"]]
+        if imagen_url:
+            campos += ", imagen_url = %s"
+            params.append(imagen_url)
+        # El slug no cambia al editar para no romper enlaces ya compartidos.
+        afectadas = ejecutar(f"UPDATE articulos SET {campos} WHERE id = %s", (*params, id))
+        flash("Artículo actualizado correctamente." if afectadas else "El artículo ya no existe.",
+              "success" if afectadas else "error")
+    except Exception as e:
+        app.logger.error("Error al editar el artículo: %s", e)
+        flash("No se pudo actualizar el artículo.", "error")
+    return redirect(url_for("admin", vista="vista-lista-articulos"))
+
+
+@app.route("/admin/articulos/eliminar/<int:id>", methods=["POST"])
+@login_requerido
+def eliminar_articulo(id):
+    try:
+        if ejecutar("DELETE FROM articulos WHERE id = %s", (id,)):
+            flash("Artículo eliminado.", "success")
+        else:
+            flash("El artículo ya no existe.", "error")
+    except Exception as e:
+        app.logger.error("Error al eliminar el artículo: %s", e)
+        flash("No se pudo eliminar el artículo.", "error")
+    return redirect(url_for("admin", vista="vista-lista-articulos"))
+
+
+# -- Reseñas --
+@app.route("/admin/referencias/aprobar/<int:id>", methods=["POST"])
+@login_requerido
+def aprobar_referencia(id):
+    try:
+        fila = consultar("UPDATE reviews SET aprobada = NOT aprobada WHERE id = %s RETURNING aprobada", (id,), uno=True)
+        get_db().commit()
+        if fila is None:
+            flash("La reseña ya no existe.", "error")
+        else:
+            flash("Reseña publicada en el sitio." if fila["aprobada"] else "Reseña ocultada del sitio.", "success")
+    except Exception as e:
+        app.logger.error("Error al aprobar la reseña: %s", e)
+        flash("No se pudo actualizar la reseña.", "error")
+    return redirect(url_for("admin", vista="vista-lista-referencias"))
+
+
 @app.route("/admin/referencias/eliminar/<int:id>", methods=["POST"])
 @login_requerido
 def eliminar_referencia(id):
@@ -658,6 +1058,64 @@ def eliminar_referencia(id):
         app.logger.error("Error al eliminar la reseña: %s", e)
         flash("No se pudo eliminar la reseña.", "error")
     return redirect(url_for("admin", vista="vista-lista-referencias"))
+
+
+# -- Mensajes de contacto --
+@app.route("/admin/mensajes/leido/<int:id>", methods=["POST"])
+@login_requerido
+def marcar_mensaje(id):
+    try:
+        if not ejecutar("UPDATE mensajes SET leido = NOT leido WHERE id = %s", (id,)):
+            flash("El mensaje ya no existe.", "error")
+    except Exception as e:
+        app.logger.error("Error al actualizar el mensaje: %s", e)
+        flash("No se pudo actualizar el mensaje.", "error")
+    return redirect(url_for("admin", vista="vista-mensajes"))
+
+
+@app.route("/admin/mensajes/eliminar/<int:id>", methods=["POST"])
+@login_requerido
+def eliminar_mensaje(id):
+    try:
+        if ejecutar("DELETE FROM mensajes WHERE id = %s", (id,)):
+            flash("Mensaje eliminado.", "success")
+        else:
+            flash("El mensaje ya no existe.", "error")
+    except Exception as e:
+        app.logger.error("Error al eliminar el mensaje: %s", e)
+        flash("No se pudo eliminar el mensaje.", "error")
+    return redirect(url_for("admin", vista="vista-mensajes"))
+
+
+# -- Mi cuenta --
+@app.route("/admin/cuenta/password", methods=["POST"])
+@login_requerido
+def cambiar_password():
+    actual = request.form.get("actual", "")
+    nueva = request.form.get("nueva", "")
+    confirmar = request.form.get("confirmar", "")
+    destino = redirect(url_for("admin", vista="vista-cuenta"))
+
+    if len(nueva) < 8:
+        flash("La nueva contraseña debe tener al menos 8 caracteres.", "error")
+        return destino
+    if nueva != confirmar:
+        flash("La confirmación no coincide con la nueva contraseña.", "error")
+        return destino
+    try:
+        user = consultar("SELECT id, password FROM usuarios WHERE usuario = %s", (session["usuario"],), uno=True)
+        guardada = user["password"] if user else ""
+        correcta = (check_password_hash(guardada, actual) if guardada.startswith(("scrypt:", "pbkdf2:"))
+                    else bool(guardada) and secrets.compare_digest(guardada, actual))
+        if not correcta:
+            flash("La contraseña actual no es correcta.", "error")
+            return destino
+        ejecutar("UPDATE usuarios SET password = %s WHERE id = %s", (generate_password_hash(nueva), user["id"]))
+        flash("Contraseña actualizada correctamente.", "success")
+    except Exception as e:
+        app.logger.error("Error al cambiar la contraseña: %s", e)
+        flash("No se pudo cambiar la contraseña.", "error")
+    return destino
 
 
 # ---- Errores ----
@@ -675,12 +1133,12 @@ def archivo_muy_grande(_error):
 # ---- Comandos de mantenimiento (flask --app app ...) ----
 @app.cli.command("init-db")
 def init_db_command():
-    """Crea las tablas definidas en schema.sql."""
+    """Crea o actualiza las tablas definidas en schema.sql."""
     with open(os.path.join(BASE_DIR, "schema.sql"), encoding="utf-8") as f:
         sql = f.read()
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
         conn.execute(sql)
-    click.echo("Tablas creadas o ya existentes.")
+    click.echo("Tablas creadas o actualizadas.")
 
 
 @app.cli.command("crear-admin")

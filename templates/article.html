@@ -1,30 +1,29 @@
 {% extends "base.html" %}
+{% block descripcion %}{{ articulo.extracto or articulo.titulo }}{% endblock %}
+{% block og_tipo %}article{% endblock %}
+{% block og_imagen %}{{ url_sitio() ~ url_for('imagen_articulo', articulo_id=articulo.id, v=version_imagen(articulo)) }}{% endblock %}
 {% block content %}
-{% if articulo.slider %}
 <section class="slider">
-    {% for imagen in articulo.slider %}
     <div class="slide">
-        <img src="{{ url_for('static', filename=imagen) }}" alt="Imagen {{ loop.index }} de la nota">
+        <img src="{{ url_for('static', filename='IMG/somos_negro.png') }}" alt="JM Architects">
     </div>
-    {% endfor %}
+    <div class="slide">
+        <img src="{{ url_for('static', filename='IMG/somos_blanco.png') }}" alt="JM Architects">
+    </div>
 </section>
-{% endif %}
 <section class="nota-detalle nota-detalle-especial">
     <div class="contenido">
         <div class="imagen-principal">
-            <img src="{{ url_for('static', filename=articulo.imagen) }}" alt="{{ articulo.titulo }}">
+            <img src="{{ url_for('imagen_articulo', articulo_id=articulo.id, v=version_imagen(articulo)) }}" alt="{{ articulo.titulo }}">
         </div>
         <div class="texto-principal">
             <h1>{{ articulo.titulo }}</h1>
-            <p class="subtitulo">{{ articulo.subtitulo }}</p>
+            {% if articulo.extracto %}<p class="subtitulo">{{ articulo.extracto }}</p>{% endif %}
+            <p class="fecha-articulo"><i class="fa-regular fa-calendar"></i> {{ articulo.fecha | fecha_larga }}</p>
         </div>
         <div class="cuerpo-nota">
             <div class="texto">
-                {% for parrafo in articulo.parrafos %}<p>{{ parrafo }}</p>{% endfor %}
-                {% for seccion in articulo.secciones %}
-                <h3>{{ seccion.titulo }}</h3>
-                {% for parrafo in seccion.parrafos %}<p>{{ parrafo }}</p>{% endfor %}
-                {% endfor %}
+                {{ articulo.contenido | contenido_articulo }}
                 <p><a class="boton" href="{{ url_for('contact') }}">Hablemos de tu proyecto</a></p>
             </div>
         </div>

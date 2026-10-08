@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "_macros.html" import casilla_privacidad, captcha with context %}
+{% block descripcion %}Contacta a JM Architects en Cadereyta Jiménez, N.L.: teléfono {{ sitio.telefono }}, WhatsApp y formulario para cotizar urbanización, lotificación, avalúos y trámites catastrales.{% endblock %}
 {% block content %}
 <section id="parallax">
     <h1>CONTACTO</h1>
@@ -34,8 +36,10 @@
             <textarea id="mensaje" name="mensaje" rows="4" required maxlength="2000"></textarea>
 
             <label for="archivo">Adjuntar plano, escritura o imagen (opcional, máx. 4 MB):</label>
-            <input type="file" id="archivo" name="archivo" data-max-mb="4" accept="image/*,.pdf,.dwg,.dxf,.doc,.docx">
+            <input type="file" id="archivo" name="archivo" data-max-mb="4" accept=".pdf,.jpg,.jpeg,.png,.webp,.dwg,.dxf,.doc,.docx">
 
+            {{ casilla_privacidad('privacidad-contacto') }}
+            {{ captcha() }}
             <button type="submit">Enviar</button>
         </form>
     </div>
@@ -57,9 +61,9 @@
     <!-- Información de contacto -->
     <div class="info-contacto">
         <h3>Información</h3>
-        <p><strong>Correo:</strong> jmarchitects.proyectos@gmail.com</p>
-        <p><strong>Teléfono:</strong> +52 828 131 1613</p>
-        <p><strong>Dirección:</strong> Ignacio Comonfort 232, Lázaro Cárdenas 1er Sector, 67483 Cadereyta Jiménez, N.L.</p>
+        <p><strong>Correo:</strong> {{ sitio.correo }}</p>
+        <p><strong>Teléfono:</strong> {{ sitio.telefono }}</p>
+        <p><strong>Dirección:</strong> {{ sitio.direccion }}, {{ sitio.cp }} {{ sitio.ciudad }}, N.L.</p>
     </div>
 </section>
 

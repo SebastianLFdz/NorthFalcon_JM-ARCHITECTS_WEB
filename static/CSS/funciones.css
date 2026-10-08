@@ -12,8 +12,29 @@
 }
 
 /* ---------- Navegación ---------- */
+/* La página actual se subraya; el gris queda solo para el hover, como en estilos.css. */
 nav a.activo {
+    color: white;
+    border-bottom: 2px solid white;
+    padding-bottom: 4px;
+}
+
+nav a.activo:hover {
     color: #7d7d7dea;
+    border-bottom-color: #7d7d7dea;
+}
+
+/* ---------- Inicio: "Servicios Destacados" con el título encima de las tarjetas ---------- */
+.eventos {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 10px;
+}
+
+.eventos h2 {
+    flex-basis: 100%;
+    text-align: center;
+    margin-top: 0;
 }
 
 .menu-toggle {
@@ -746,6 +767,8 @@ nav a.activo {
     border-radius: 6px;
     padding: 6px 14px;
     font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4;
     cursor: pointer;
     white-space: nowrap;
     transition: background-color 0.3s, color 0.3s;
@@ -835,6 +858,220 @@ nav a.activo {
     max-width: 800px;
 }
 
+/* ---------- Paginación ---------- */
+.paginacion {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 30px auto 0;
+    max-width: 720px;
+}
+
+.paginacion a,
+.paginacion span {
+    min-width: 40px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #292929;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    background-color: #fff;
+}
+
+.paginacion a:hover,
+.paginacion .actual {
+    background-color: #1c1c1c;
+    color: #fff;
+}
+
+/* ---------- Aviso de privacidad y formularios ---------- */
+.casilla-privacidad {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 10px;
+    font-weight: 500 !important;
+    font-size: 15px;
+    color: #333;
+    margin: 0 0 20px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.formulario .casilla-privacidad input,
+.formulario-contacto .casilla-privacidad input {
+    width: auto;
+    margin: 3px 0 0;
+    padding: 0;
+    accent-color: #212121;
+    flex-shrink: 0;
+}
+
+.casilla-privacidad a,
+.nota-formulario a {
+    color: #000;
+    text-decoration: underline;
+}
+
+.nota-formulario {
+    font-size: 14px;
+    color: #555;
+    margin: 0 0 15px;
+}
+
+.cf-turnstile {
+    margin-bottom: 20px;
+}
+
+.footer-legal {
+    margin: 0;
+    font-size: 14px;
+}
+
+.footer-legal a {
+    color: #b6b6b6;
+}
+
+.aviso-privacidad .texto {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.fecha-articulo {
+    color: #777;
+    font-size: 15px;
+}
+
+/* ---------- Panel: estados, mensajes y extras ---------- */
+.insignia {
+    display: inline-block;
+    min-width: 24px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: #d9534f;
+    color: #fff;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.estado {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.estado.ok {
+    background-color: #e6f5e6;
+    color: #2e7d32;
+}
+
+.estado.pendiente {
+    background-color: #fdecea;
+    color: #b3261e;
+}
+
+.estado.aviso {
+    background-color: #fff4e0;
+    color: #8a5a00;
+}
+
+.fila-pendiente td {
+    background-color: #fffaf3;
+}
+
+.acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.acciones form {
+    margin: 0;
+}
+
+a.btn-tabla {
+    display: inline-block;
+    text-decoration: none;
+}
+
+.btn-tabla.exito {
+    color: #2e7d32;
+    border-color: #2e7d32;
+}
+
+.btn-tabla.exito:hover {
+    background-color: #2e7d32;
+    color: #fff;
+}
+
+.mensaje {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.mensaje.no-leido {
+    border-left: 6px solid #212121;
+}
+
+.mensaje-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mensaje-cabecera strong {
+    font-size: 18px;
+    margin-right: 8px;
+}
+
+.mensaje-cabecera small {
+    display: block;
+    color: #777;
+}
+
+.mensaje-datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    color: #555;
+    font-size: 15px;
+}
+
+.mensaje-datos a {
+    color: #222;
+}
+
+.mensaje-texto {
+    white-space: pre-line;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 12px;
+    color: #333;
+}
+
+.formulario-contacto input[type="checkbox"] {
+    width: auto;
+}
+
+.panel-dialogo.dialogo-ancho {
+    width: min(820px, calc(100% - 32px));
+}
+
+.panel-angosto {
+    max-width: 520px !important;
+    margin: 0 auto;
+}
+
 /* ---------- Adaptación a pantallas pequeñas ---------- */
 @media (max-width: 1100px) {
     header {
@@ -887,7 +1124,7 @@ nav a.activo {
 
     h1,
     #parallax h1 {
-        font-size: 38px;
+        font-size: 34px;
     }
 
     h2 {
@@ -929,12 +1166,29 @@ nav a.activo {
         min-width: 0;
     }
 
+    #parallax h1 {
+        overflow-wrap: anywhere;
+    }
+
+    .aviso-privacidad .texto,
+    .mensaje-datos {
+        overflow-wrap: anywhere;
+    }
+
     .nota-detalle-especial .contenido {
         padding: 0;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cuerpo-nota .texto h3 {
+        font-size: 24px;
+        overflow-wrap: break-word;
     }
 
     .texto-principal h1 {
-        font-size: 30px;
+        font-size: 26px;
+        overflow-wrap: break-word;
+        hyphens: auto;
     }
 
     .resenas-layout,

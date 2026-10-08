@@ -60,6 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("change", async () => {
       let archivo = input.files[0];
       if (!archivo) return;
+      if (/\.(heic|heif)$/i.test(archivo.name) || /image\/hei[cf]/.test(archivo.type)) {
+        alert("Las fotos HEIC de iPhone no son compatibles con el navegador.\n\n" +
+              "Opciones: súbela directamente desde el iPhone (se convierte sola a JPG), " +
+              "o en el iPhone ve a Ajustes > Cámara > Formatos y elige \"Más compatible\".");
+        input.value = "";
+        return;
+      }
       if (input.hasAttribute("data-comprimir")) {
         try {
           const reducido = await reducirImagen(archivo);
