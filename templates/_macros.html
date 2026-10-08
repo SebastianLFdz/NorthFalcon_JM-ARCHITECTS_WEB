@@ -1,0 +1,10 @@
+{% macro estrellas(valor) -%}
+{%- set completas = valor | int -%}
+{%- set media = (valor - completas) >= 0.5 -%}
+{%- set vacias = 5 - completas - (1 if media else 0) -%}
+<span class="estrellas" role="img" aria-label="{{ valor }} de 5 estrellas">
+    {%- for _ in range(completas) %}<i class="fa-solid fa-star"></i>{% endfor -%}
+    {%- if media %}<i class="fa-solid fa-star-half-stroke"></i>{% endif -%}
+    {%- for _ in range(vacias) %}<i class="fa-regular fa-star"></i>{% endfor -%}
+</span>
+{%- endmacro %}

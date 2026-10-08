@@ -1,1 +1,20 @@
-{% extends "base.html" %}{% block content %}<section class="page-hero compact"><p class="eyebrow accent">Servicios</p><h1>Un mapa claro para<br><em>tu siguiente paso.</em></h1></section><section class="service-list section">{% for item in [("01", "Consultoría de predios", "Analizamos ubicación, uso, documentación y posibilidades para que sepas qué sí puede hacerse."), ("02", "Levantamientos topográficos", "Traducimos el terreno físico a información precisa: medidas, límites y condiciones reales."), ("03", "Subdivisión y regularización", "Acompañamos trámites y ordenamos la parte técnica para que tu propiedad vuelva a moverse."), ("04", "Título y desarrollo", "Damos forma a proyectos de inversión con una estrategia aterrizada y responsable.")] %}<article class="service-row"><span>{{ item[0] }}</span><h2>{{ item[1] }}</h2><p>{{ item[2] }}</p><a href="{{ url_for('contact') }}" aria-label="Consultar {{ item[1] }}">↗</a></article>{% endfor %}</section>{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+<section id="parallax">
+    <h1>SERVICIOS</h1>
+    <h3>Un mapa claro para tu siguiente paso</h3>
+</section>
+<section class="artistas">
+    <h2>¿En qué te podemos ayudar?</h2>
+    <div class="artistas-grid">
+        {% for servicio in servicios %}
+        <article class="artista servicio">
+            <i class="fa-solid {{ servicio.icono }} servicio-icono" aria-hidden="true"></i>
+            <h3>{{ servicio.titulo }}</h3>
+            <p>{{ servicio.descripcion }}</p>
+            <div class="redes-sociales"><a href="{{ url_for('contact', servicio=servicio.titulo) }}">Solicitar información</a></div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

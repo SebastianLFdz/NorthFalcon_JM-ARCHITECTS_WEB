@@ -1,0 +1,8 @@
+# Prototipo estático original (ya migrado a templates/) y archivos de desarrollo:
+# no se necesitan en el despliegue.
+/*.html
+/script.js
+/.DS_Store
+/tests
+.env
+*.env

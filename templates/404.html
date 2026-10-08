@@ -1,1 +1,12 @@
-{% extends "base.html" %}{% block content %}<section class="page-hero error-page"><p class="eyebrow accent">404</p><h1>Esta página tomó<br><em>otra ruta.</em></h1><p>El enlace que buscas ya no existe o cambió de lugar.</p><a class="button button-dark" href="{{ url_for('home') }}">Volver al inicio <span>↗</span></a></section>{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+<section id="parallax">
+    <h1>404</h1>
+    <h3>Esta página tomó otra ruta</h3>
+</section>
+<section class="agradecimiento pagina-error">
+    <h2>Página no encontrada</h2>
+    <p>El enlace que buscas ya no existe o cambió de lugar.</p>
+    <a class="boton" href="{{ url_for('home') }}">Volver al inicio</a>
+</section>
+{% endblock %}

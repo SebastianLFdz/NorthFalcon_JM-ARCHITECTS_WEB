@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% from "_macros.html" import estrellas %}
+{% block content %}
+<section id="parallax">
+    <h1>PANEL ADMINISTRATIVO</h1>
+    <h3>Bienvenido, {{ session['usuario'] }}</h3>
+</section>
+
+<section class="panel">
+    <p class="panel-intro">Aquí puedes publicar, editar y eliminar proyectos, y gestionar las reseñas de tus clientes.</p>
+
+    <!-- VISTA 1: MENÚ PRINCIPAL -->
+    <div id="vista-menu-principal" class="vista-admin">
+        <h2>¿Qué deseas gestionar?</h2>
+        <div class="panel-menu">
+            <button type="button" class="panel-tarjeta" data-vista="vista-submenu-proyectos">
+                <i class="fa-solid fa-compass-drafting"></i>
+                <h3>Proyectos</h3>
+                <p>Crear, editar o eliminar proyectos ({{ proyectos | length }})</p>
+            </button>
+            <button type="button" class="panel-tarjeta" data-vista="vista-submenu-referencias">
+                <i class="fa-solid fa-star"></i>
+                <h3>Reseñas</h3>
+                <p>Gestionar reseñas y listados ({{ referencias | length }})</p>
+            </button>
+        </div>
+    </div>
+
+    <!-- VISTA 2: SUBMENÚ PROYECTOS -->
+    <div id="vista-submenu-proyectos" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-menu-principal"><i class="fa-solid fa-arrow-left"></i> Menú principal</button>
+        <h2>Gestión de Proyectos</h2>
+        <div class="panel-menu tres">
+            <button type="button" class="panel-tarjeta" data-vista="vista-crear-proyecto">
+                <i class="fa-solid fa-circle-plus"></i>
+                <h3>Crear</h3>
+            </button>
+            <button type="button" class="panel-tarjeta" data-vista="vista-eliminar-proyecto">
+                <i class="fa-solid fa-trash-can peligro"></i>
+                <h3>Eliminar</h3>
+            </button>
+            <button type="button" class="panel-tarjeta" data-vista="vista-editar-lista">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <h3>Editar</h3>
+            </button>
+        </div>
+    </div>
+
+    <!-- VISTA 3: SUBMENÚ RESEÑAS -->
+    <div id="vista-submenu-referencias" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-menu-principal"><i class="fa-solid fa-arrow-left"></i> Menú principal</button>
+        <h2>Gestión de Reseñas</h2>
+        <div class="panel-menu uno">
+            <button type="button" class="panel-tarjeta" data-vista="vista-lista-referencias">
+                <i class="fa-solid fa-list-check"></i>
+                <h3>Mostrar y gestionar listado</h3>
+                <p>Visualiza todas las reseñas de clientes y elimina las que desees.</p>
+            </button>
+        </div>
+    </div>
+
+    <!-- VISTA 4: CREAR PROYECTO -->
+    <div id="vista-crear-proyecto" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-submenu-proyectos"><i class="fa-solid fa-arrow-left"></i> Volver a proyectos</button>
+        <div class="panel-card formulario-contacto">
+            <h2><i class="fa-solid fa-folder-plus"></i> Agregar nuevo proyecto</h2>
+            <form action="{{ url_for('admin_crear_proyecto') }}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label for="nuevo-titulo">Título del proyecto *</label>
+                <input type="text" id="nuevo-titulo" name="titulo" required maxlength="150" placeholder="Ej. Lotificación residencial en Cadereyta">
+
+                <label for="nuevo-descripcion">Descripción del proyecto</label>
+                <textarea id="nuevo-descripcion" name="descripcion" rows="5" placeholder="Describe el servicio realizado, la superficie, la ubicación y los resultados..."></textarea>
+
+                <div class="panel-fila">
+                    <div>
+                        <label for="nuevo-fecha">Fecha del proyecto</label>
+                        <input type="date" id="nuevo-fecha" name="fecha">
+                    </div>
+                    <div>
+                        <label for="nuevo-imagen">Imagen principal *</label>
+                        <input type="file" id="nuevo-imagen" name="imagen" accept="image/jpeg,image/png,image/webp,image/gif" required data-comprimir data-max-mb="4">
+                    </div>
+                </div>
+                <button type="submit"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar proyecto</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- VISTA 5: ELIMINAR PROYECTO -->
+    <div id="vista-eliminar-proyecto" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-submenu-proyectos"><i class="fa-solid fa-arrow-left"></i> Volver a proyectos</button>
+        <div class="panel-card">
+            <h2 class="peligro"><i class="fa-solid fa-trash-can"></i> Eliminar proyectos</h2>
+            <p class="panel-nota">Selecciona el proyecto que deseas eliminar. Esta acción es irreversible.</p>
+            <div class="tabla-contenedor">
+                <table class="tabla-admin">
+                    <thead><tr><th>Imagen</th><th>Título del proyecto</th><th>Fecha</th><th>Acción</th></tr></thead>
+                    <tbody>
+                        {% for p in proyectos %}
+                        <tr>
+                            <td><img class="miniatura" src="{{ url_for('imagen_proyecto', proyecto_id=p.id, v=version_imagen(p)) }}" alt="" loading="lazy"></td>
+                            <td><strong>{{ p.titulo }}</strong></td>
+                            <td>{{ p.fecha | fecha_corta }}</td>
+                            <td>
+                                <form action="{{ url_for('eliminar_proyecto', id=p.id) }}" method="post" onsubmit="return confirm('¿Estás COMPLETAMENTE seguro de eliminar este proyecto?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-tabla peligro"><i class="fa-solid fa-trash"></i> Borrar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="tabla-vacia"><i class="fa-solid fa-folder-open"></i><br>Aún no hay proyectos registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA 6: EDITAR PROYECTO -->
+    <div id="vista-editar-lista" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-submenu-proyectos"><i class="fa-solid fa-arrow-left"></i> Volver a proyectos</button>
+        <div class="panel-card">
+            <h2><i class="fa-solid fa-pen-to-square"></i> Editar proyectos</h2>
+            <p class="panel-nota">Selecciona el proyecto que deseas modificar.</p>
+            <div class="tabla-contenedor">
+                <table class="tabla-admin">
+                    <thead><tr><th>Imagen</th><th>Título del proyecto</th><th>Fecha</th><th>Acción</th></tr></thead>
+                    <tbody>
+                        {% for p in proyectos %}
+                        <tr>
+                            <td><img class="miniatura" src="{{ url_for('imagen_proyecto', proyecto_id=p.id, v=version_imagen(p)) }}" alt="" loading="lazy"></td>
+                            <td><strong>{{ p.titulo }}</strong></td>
+                            <td>{{ p.fecha | fecha_corta }}</td>
+                            <td><button type="button" class="btn-tabla" data-abrir="modalEditar{{ p.id }}"><i class="fa-solid fa-pen"></i> Editar</button></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="tabla-vacia">Aún no hay proyectos registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% for p in proyectos %}
+        <dialog class="panel-dialogo" id="modalEditar{{ p.id }}">
+            <form action="{{ url_for('editar_proyecto', id=p.id) }}" method="post" enctype="multipart/form-data" class="formulario-contacto">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="dialogo-cabecera">
+                    <h3>Editar proyecto</h3>
+                    <button type="button" class="dialogo-cerrar" data-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <label for="titulo-{{ p.id }}">Nombre del proyecto *</label>
+                <input type="text" id="titulo-{{ p.id }}" name="titulo" value="{{ p.titulo }}" required maxlength="150">
+
+                <label for="fecha-{{ p.id }}">Fecha *</label>
+                <input type="date" id="fecha-{{ p.id }}" name="fecha" value="{{ p.fecha.isoformat() }}" required>
+
+                <label for="descripcion-{{ p.id }}">Descripción</label>
+                <textarea id="descripcion-{{ p.id }}" name="descripcion" rows="4">{{ p.descripcion or '' }}</textarea>
+
+                <label for="imagen-{{ p.id }}">Nueva imagen (opcional)</label>
+                <input type="file" id="imagen-{{ p.id }}" name="imagen" accept="image/jpeg,image/png,image/webp,image/gif" data-comprimir data-max-mb="4">
+                <small class="panel-nota">Deja este campo vacío si deseas conservar la imagen actual.</small>
+
+                <div class="dialogo-acciones">
+                    <button type="button" class="boton boton-claro" data-cerrar>Cancelar</button>
+                    <button type="submit">Guardar cambios</button>
+                </div>
+            </form>
+        </dialog>
+        {% endfor %}
+    </div>
+
+    <!-- VISTA 7: LISTA Y ELIMINACIÓN DE RESEÑAS -->
+    <div id="vista-lista-referencias" class="vista-admin oculto">
+        <button type="button" class="btn-volver" data-vista="vista-submenu-referencias"><i class="fa-solid fa-arrow-left"></i> Volver a reseñas</button>
+        <div class="panel-card">
+            <h2><i class="fa-solid fa-comments"></i> Reseñas de clientes</h2>
+            <p class="panel-nota">Listado de testimonios registrados. Haz clic en "Borrar" para eliminar una reseña del sitio.</p>
+            <div class="tabla-contenedor">
+                <table class="tabla-admin">
+                    <thead><tr><th>Cliente</th><th>Calificación</th><th>Comentario</th><th>Fecha</th><th>Acción</th></tr></thead>
+                    <tbody>
+                        {% for ref in referencias %}
+                        <tr>
+                            <td><strong>{{ ref.nombre }}</strong></td>
+                            <td class="sin-salto">{{ ref.calificacion }} {{ estrellas(ref.calificacion) }}</td>
+                            <td class="comentario">"{{ ref.comentario }}"</td>
+                            <td>{{ ref.fecha | fecha_corta }}</td>
+                            <td>
+                                <form action="{{ url_for('eliminar_referencia', id=ref.id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta reseña?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-tabla peligro"><i class="fa-solid fa-trash"></i> Borrar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="tabla-vacia"><i class="fa-solid fa-comment-slash"></i><br>Aún no hay reseñas registradas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <p class="panel-intro">Usa el menú de tu usuario (arriba a la derecha) para salir o volver a este panel.</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function mostrarVista(idVista) {
+        const objetivo = document.getElementById(idVista);
+        if (!objetivo) return;
+        document.querySelectorAll(".vista-admin").forEach(function (vista) {
+            vista.classList.add("oculto");
+        });
+        objetivo.classList.remove("oculto");
+        document.querySelector(".panel").scrollIntoView({ behavior: "smooth" });
+    }
+
+    document.querySelectorAll("[data-vista]").forEach(function (boton) {
+        boton.addEventListener("click", function () { mostrarVista(boton.dataset.vista); });
+    });
+
+    // Al volver de una acción, Flask indica qué vista mostrar con ?vista=...
+    const vistaActiva = new URLSearchParams(window.location.search).get("vista");
+    if (vistaActiva) mostrarVista(vistaActiva);
+</script>
+{% endblock %}

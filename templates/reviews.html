@@ -1,1 +1,87 @@
-{% extends "base.html" %}{% block content %}<section class="page-hero compact"><p class="eyebrow accent">Reseñas</p><h1>Experiencias que<br><em>nos dejan seguir.</em></h1><p>Tu opinión ayuda a otras personas a dar el primer paso con más confianza.</p></section><section class="reviews-layout section"><div><div class="rating-summary"><strong>{{ (reviews|map(attribute='rating')|sum / reviews|length)|round(1) if reviews else '—' }}</strong><span>{% if reviews %}★★★★★{% else %}Aún no hay reseñas{% endif %}</span><small>{{ reviews|length }} reseñas publicadas</small></div><form method="post" class="simple-form review-form"><label>Tu nombre<input name="name" required maxlength="80"></label><fieldset><legend>Calificación</legend><div class="rating-input"><label><input type="radio" name="rating" value="1" required> 1</label><label><input type="radio" name="rating" value="2"> 2</label><label><input type="radio" name="rating" value="3"> 3</label><label><input type="radio" name="rating" value="4"> 4</label><label><input type="radio" name="rating" value="5"> 5</label></div></fieldset><label>Tu reseña<textarea name="comment" rows="5" required maxlength="500"></textarea></label><button class="button button-dark" type="submit">Publicar reseña <span>↗</span></button></form></div><div class="review-list">{% for review in reviews %}<article class="review"><div class="review-head"><strong>{{ review.name }}</strong><span aria-label="{{ review.rating }} de 5 estrellas">{{ '★' * review.rating }}{{ '☆' * (5 - review.rating) }}</span></div><p>{{ review.comment }}</p></article>{% else %}<div class="empty-state"><p>Tu experiencia puede ser la primera.</p></div>{% endfor %}</div></section>{% endblock %}
+{% extends "base.html" %}
+{% from "_macros.html" import estrellas %}
+{% block content %}
+<section id="parallax">
+    <h1>RESEÑAS</h1>
+    <h3>Experiencias que nos dejan seguir</h3>
+</section>
+
+<section class="resenas">
+    <div class="destacado">
+        <h2>Lo que dicen nuestros clientes</h2>
+        <p>Tu opinión ayuda a otras personas a dar el primer paso con más confianza.</p>
+    </div>
+
+    <div class="resenas-layout">
+        <!-- Columna izquierda: resumen y formulario -->
+        <div class="resenas-lateral">
+            <div class="resumen-calificacion">
+                <strong class="promedio">{{ promedio }} de 5</strong>
+                {{ estrellas(promedio) }}
+                <small>{{ total }} calificaciones globales</small>
+
+                <div class="barras">
+                    {% for star in [5, 4, 3, 2, 1] %}
+                    <a href="{{ url_for('reviews_page', stars=star) }}" class="barra{% if filtro == star %} activa{% endif %}">
+                        <span>{{ star }} est.</span>
+                        <span class="barra-pista"><span class="barra-relleno" style="width: {{ pct[star] | round(1) }}%;"></span></span>
+                        <span class="barra-pct">{{ pct[star] | int }}%</span>
+                    </a>
+                    {% endfor %}
+                    {% if filtro %}
+                    <a href="{{ url_for('reviews_page') }}" class="boton boton-claro">Borrar filtro</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="formulario-contacto">
+                <h3>Deja tu reseña</h3>
+                <form method="post" action="{{ url_for('reviews_page') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="campo-oculto" aria-hidden="true">
+                        <label for="sitio_web">No llenar este campo</label>
+                        <input type="text" id="sitio_web" name="sitio_web" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    <label for="nombre">Tu nombre</label>
+                    <input type="text" id="nombre" name="nombre" required maxlength="80">
+
+                    <label for="calificacion">
+                        Calificación: <span id="star-val">5.0</span> <i class="fa-solid fa-star"></i>
+                    </label>
+                    <input type="range" id="calificacion" name="calificacion" min="1" max="5" step="0.5" value="5"
+                           oninput="document.getElementById('star-val').textContent = parseFloat(this.value).toFixed(1);">
+
+                    <label for="comentario">Tu reseña</label>
+                    <textarea id="comentario" name="comentario" rows="4" required maxlength="500" placeholder="¿Qué te pareció nuestro trabajo?"></textarea>
+
+                    <button type="submit">Publicar reseña</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Columna derecha: lista de reseñas -->
+        <div class="review-list">
+            {% for rev in resenas %}
+            <article class="review">
+                <div class="review-head">
+                    <strong>{{ rev.nombre }}</strong>
+                    <small>{{ rev.fecha | fecha_corta }}</small>
+                </div>
+                {{ estrellas(rev.calificacion) }}
+                <p>"{{ rev.comentario }}"</p>
+            </article>
+            {% else %}
+            <div class="estado-vacio">
+                <i class="fa-regular fa-comment-dots"></i>
+                {% if error_db %}
+                <p>Las reseñas no están disponibles por el momento. Intenta de nuevo más tarde.</p>
+                {% else %}
+                <p>No hay reseñas que coincidan con este filtro. ¡Sé el primero en opinar!</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

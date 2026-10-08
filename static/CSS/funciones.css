@@ -1,0 +1,950 @@
+/* ==========================================================================
+   Componentes de las funciones dinámicas (sesión, panel, proyectos, reseñas).
+   Usa la misma paleta de estilos.css: negro #000 / #121212 / #212121 / #272727,
+   grises #333 #555 #ddd #f3f3f3 #f9f9f9, tarjetas blancas con radio 8-10px.
+   estilos.css no se modifica.
+   ========================================================================== */
+
+/* Misma imagen de fondo que estilos.css, con nombre corto: el original supera el límite
+   de 260 caracteres de ruta en Windows y no se podía servir en local. */
+.contacto-parallax {
+    background-image: url('../IMG/fondo-herramientas.jpg');
+}
+
+/* ---------- Navegación ---------- */
+nav a.activo {
+    color: #7d7d7dea;
+}
+
+.menu-toggle {
+    display: none;
+    background: transparent;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.nav-usuario {
+    position: relative;
+}
+
+.nav-usuario summary {
+    list-style: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: white;
+}
+
+.nav-usuario summary::-webkit-details-marker {
+    display: none;
+}
+
+.nav-usuario summary::after {
+    content: " ▾";
+    font-size: 12px;
+}
+
+.nav-usuario details ul {
+    position: absolute;
+    right: 0;
+    top: 32px;
+    min-width: 220px;
+    background-color: #121212;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 8px 0;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    z-index: 50;
+}
+
+.nav-usuario details li {
+    display: block;
+    margin: 0;
+}
+
+.nav-usuario details a {
+    display: block;
+    padding: 10px 16px;
+}
+
+.nav-usuario details a:hover {
+    background-color: #272727;
+    color: white;
+}
+
+/* ---------- Mensajes ---------- */
+.flash-stack {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(520px, calc(100% - 32px));
+}
+
+.flash {
+    background-color: #fff;
+    color: #222;
+    border-left: 6px solid #272727;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.flash.success {
+    border-left-color: #4bbe49;
+}
+
+.flash.error {
+    border-left-color: #d9534f;
+}
+
+/* ---------- WhatsApp flotante ---------- */
+.whatsapp-float {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #25d366;
+    color: white;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    text-decoration: none;
+    z-index: 1400;
+    transition: transform 0.2s ease;
+}
+
+.whatsapp-float:hover {
+    transform: translateY(-5px);
+}
+
+/* ---------- Utilidades ---------- */
+.oculto {
+    display: none !important;
+}
+
+.campo-oculto {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.boton {
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: inherit;
+}
+
+.boton-claro {
+    background-color: #fff;
+    color: #1a1a1a;
+    border: 1px solid #292929;
+}
+
+.boton-claro:hover {
+    background-color: #1c1c1c;
+    color: #fff;
+}
+
+.estado-vacio {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 50px 20px;
+    text-align: center;
+    color: #555;
+}
+
+.estado-vacio i {
+    font-size: 48px;
+    color: #212121;
+    margin-bottom: 10px;
+}
+
+.estado-vacio h3 {
+    font-size: 24px;
+}
+
+/* ---------- Inicio: enlace a reseñas ---------- */
+.resenas-link {
+    text-align: center;
+    padding: 60px 20px;
+    background-color: #f9f9f9;
+}
+
+.resenas-link h2 {
+    font-size: 32px;
+    color: #333;
+}
+
+.resenas-link p {
+    color: #555;
+    font-size: 18px;
+}
+
+.resenas-link .boton {
+    margin: 20px 8px 0;
+}
+
+/* ---------- Servicios ---------- */
+.servicio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.servicio p {
+    flex: 1;
+}
+
+.servicio-icono {
+    font-size: 42px;
+    color: #212121;
+    margin: 10px 0;
+}
+
+/* ---------- Formularios: campos que estilos.css no cubre ---------- */
+.formulario input[type="tel"],
+.formulario input[type="password"],
+.formulario input[type="file"],
+.formulario select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #fff;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.formulario input[type="text"],
+.formulario input[type="email"],
+.formulario textarea,
+.formulario-contacto input,
+.formulario-contacto textarea {
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.formulario label {
+    text-align: left;
+}
+
+.formulario-contacto h2,
+.formulario-contacto h3 {
+    font-size: 24px;
+    color: #333;
+    margin-top: 0;
+}
+
+.formulario-contacto input[type="range"] {
+    padding: 0;
+    border: none;
+    accent-color: #212121;
+}
+
+/* ---------- Inicio de sesión ---------- */
+.acceso {
+    min-height: 60vh;
+}
+
+.acceso .formulario {
+    max-width: 420px;
+}
+
+.acceso h3 {
+    font-size: 28px;
+    margin-top: 10px;
+}
+
+.acceso-icono {
+    font-size: 48px;
+    color: #212121;
+}
+
+.acceso button {
+    width: 100%;
+}
+
+.acceso-error {
+    color: #d9534f;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+/* ---------- Proyectos (publicaciones) ---------- */
+.proyectos-feed {
+    padding: 60px 20px;
+    background-color: #f9f9f9;
+}
+
+.proyectos-feed > * {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.post-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    border-bottom: 1px solid #eee;
+}
+
+.post-avatar {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.post-header h3 {
+    font-size: 20px;
+    margin: 0;
+    color: #222;
+}
+
+.post-date {
+    font-size: 14px;
+    color: #777;
+}
+
+.post-image-wrapper {
+    cursor: pointer;
+    overflow: hidden;
+    background-color: #121212;
+}
+
+.post-image {
+    width: 100%;
+    max-height: 520px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.post-image-wrapper:hover .post-image {
+    transform: scale(1.015);
+}
+
+.post-footer {
+    padding: 16px 22px;
+}
+
+.btn-toggle-info {
+    width: 100%;
+    background-color: #272727;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-toggle-info:hover {
+    background-color: #4e4f4e;
+}
+
+.post-details {
+    display: none;
+    padding: 18px 22px 22px;
+    border-top: 1px solid #eee;
+    background-color: #f9f9f9;
+}
+
+.post-details.show {
+    display: block;
+}
+
+.post-details h4 {
+    font-size: 18px;
+    margin: 0 0 8px;
+    color: #222;
+}
+
+.post-details p {
+    color: #555;
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-line;
+}
+
+/* ---------- Reseñas ---------- */
+.resenas {
+    padding: 60px 20px;
+    background-color: #f9f9f9;
+}
+
+.resenas-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 380px) 1fr;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+.resenas-lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.resenas-lateral .formulario-contacto {
+    max-width: none;
+}
+
+.resumen-calificacion {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.resumen-calificacion .promedio {
+    display: block;
+    font-size: 30px;
+    color: #000;
+}
+
+.resumen-calificacion small {
+    display: block;
+    color: #555;
+    margin-top: 4px;
+}
+
+.barras {
+    margin-top: 20px;
+}
+
+.barra {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #333;
+    text-decoration: none;
+    padding: 4px 6px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+}
+
+.barra:hover,
+.barra.activa {
+    background-color: #f0f0f0;
+}
+
+.barra > span:first-child {
+    min-width: 52px;
+}
+
+.barra-pista {
+    flex: 1;
+    height: 12px;
+    background-color: #e6e6e6;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.barra-relleno {
+    display: block;
+    height: 100%;
+    background-color: #212121;
+}
+
+.barra-pct {
+    min-width: 40px;
+    text-align: right;
+}
+
+.barras .boton {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+}
+
+.estrellas {
+    color: #212121;
+    white-space: nowrap;
+}
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.review {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.review-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.review-head strong {
+    font-size: 18px;
+    color: #222;
+}
+
+.review-head small {
+    color: #777;
+}
+
+.review p {
+    color: #444;
+    line-height: 1.6;
+    margin: 10px 0 0;
+}
+
+/* ---------- Panel administrativo ---------- */
+.panel {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.panel h2 {
+    font-size: 32px;
+    color: #333;
+}
+
+.panel-intro {
+    color: #555;
+    font-size: 18px;
+}
+
+.panel-menu {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.panel-menu.tres {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.panel-menu.uno {
+    grid-template-columns: minmax(0, 480px);
+    justify-content: center;
+}
+
+.panel-tarjeta {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 40px 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    font-family: inherit;
+    color: #222;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.panel-tarjeta:hover {
+    transform: translateY(-5px);
+    border-color: #212121;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+.panel-tarjeta i {
+    font-size: 46px;
+    color: #212121;
+    margin-bottom: 16px;
+}
+
+.panel-tarjeta h3 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.panel-tarjeta p {
+    color: #555;
+    margin-bottom: 0;
+}
+
+.peligro,
+.panel-tarjeta i.peligro {
+    color: #d9534f;
+}
+
+.btn-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: transparent;
+    color: #333;
+    border: 1px solid #999;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.btn-volver:hover {
+    background-color: #272727;
+    color: #fff;
+}
+
+.panel-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    text-align: left;
+}
+
+.panel-card.formulario-contacto {
+    max-width: none;
+}
+
+.panel-card h2 {
+    font-size: 28px;
+    text-align: center;
+    margin-top: 0;
+}
+
+.panel-nota {
+    display: block;
+    color: #777;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.panel-fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.formulario-contacto button i {
+    margin-right: 6px;
+}
+
+.tabla-contenedor {
+    overflow-x: auto;
+}
+
+.tabla-admin {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-admin th {
+    background-color: #121212;
+    color: #fff;
+    text-align: left;
+    padding: 12px;
+    font-weight: 600;
+}
+
+.tabla-admin td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+    color: #333;
+}
+
+.tabla-admin tbody tr:hover td {
+    background-color: #f7f7f7;
+}
+
+.tabla-admin .comentario {
+    color: #555;
+    font-size: 15px;
+}
+
+.sin-salto {
+    white-space: nowrap;
+}
+
+.tabla-vacia {
+    text-align: center;
+    color: #777;
+    padding: 30px 12px !important;
+}
+
+.tabla-vacia i {
+    font-size: 26px;
+    margin-bottom: 6px;
+}
+
+.miniatura {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    display: block;
+}
+
+.btn-tabla {
+    background-color: #fff;
+    color: #333;
+    border: 1px solid #292929;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.btn-tabla:hover {
+    background-color: #1c1c1c;
+    color: #fff;
+}
+
+.btn-tabla.peligro {
+    color: #d9534f;
+    border-color: #d9534f;
+}
+
+.btn-tabla.peligro:hover {
+    background-color: #d9534f;
+    color: #fff;
+}
+
+/* ---------- Ventanas de diálogo ---------- */
+.panel-dialogo {
+    border: none;
+    border-radius: 10px;
+    padding: 0;
+    width: min(560px, calc(100% - 32px));
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.panel-dialogo::backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.panel-dialogo .formulario-contacto {
+    max-width: none;
+    border: none;
+    box-shadow: none;
+    text-align: left;
+}
+
+.dialogo-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.dialogo-cabecera h3 {
+    margin: 0;
+}
+
+.dialogo-cerrar {
+    width: auto !important;
+    background: transparent !important;
+    color: #333 !important;
+    font-size: 22px !important;
+    padding: 4px 8px !important;
+}
+
+.dialogo-acciones {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.dialogo-acciones > * {
+    flex: 1;
+    margin-top: 0;
+}
+
+.dialogo-exito {
+    text-align: center;
+    padding: 30px;
+}
+
+.dialogo-exito i {
+    font-size: 60px;
+    color: #4bbe49;
+}
+
+.dialogo-exito h3 {
+    font-size: 26px;
+}
+
+.pagina-error {
+    margin: 40px auto;
+    max-width: 800px;
+}
+
+/* ---------- Adaptación a pantallas pequeñas ---------- */
+@media (max-width: 1100px) {
+    header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    header nav {
+        display: none;
+        width: 100%;
+    }
+
+    header nav.open {
+        display: block;
+    }
+
+    header nav li {
+        display: block;
+        margin: 0;
+        border-top: 1px solid #222;
+    }
+
+    header nav li a,
+    .nav-usuario summary {
+        display: block;
+        padding: 12px 4px;
+    }
+
+    .nav-usuario details ul {
+        position: static;
+        border: none;
+        box-shadow: none;
+        padding-left: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        padding: 16px 20px;
+    }
+
+    .logo img {
+        width: 180px;
+        height: auto;
+    }
+
+    h1,
+    #parallax h1 {
+        font-size: 38px;
+    }
+
+    h2 {
+        font-size: 30px;
+    }
+
+    #parallax h3 {
+        font-size: 20px;
+    }
+
+    #parallax,
+    .contacto-parallax {
+        background-attachment: scroll;
+        padding: 80px 20px;
+    }
+
+    .eventos {
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 20px;
+        gap: 20px;
+    }
+
+    .evento {
+        width: 100%;
+        max-width: 420px;
+        margin: 0;
+    }
+
+    .formulario {
+        padding: 30px 20px;
+    }
+
+    .noticia.grande {
+        grid-column: auto;
+    }
+
+    .sobre-nosotros .texto {
+        min-width: 0;
+    }
+
+    .nota-detalle-especial .contenido {
+        padding: 0;
+    }
+
+    .texto-principal h1 {
+        font-size: 30px;
+    }
+
+    .resenas-layout,
+    .panel-menu,
+    .panel-menu.tres,
+    .panel-fila {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-card {
+        padding: 20px;
+    }
+}

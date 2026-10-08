@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<section id="parallax">
+    <h1>PROYECTOS</h1>
+    <h3>Trabajo, territorio y decisiones con una base clara</h3>
+</section>
+
+<section class="proyectos-feed">
+    <div class="destacado">
+        <h2>Nuestros Proyectos</h2>
+        <p>Conoce algunos de los trabajos que hemos realizado. Haz clic en cada publicación para ver todos los detalles.</p>
+    </div>
+
+    {% for p in proyectos %}
+    <article class="post-card">
+        <div class="post-header">
+            <div class="post-avatar">JM</div>
+            <div>
+                <h3>{{ p.titulo }}</h3>
+                <span class="post-date"><i class="fa-regular fa-clock"></i> {{ p.fecha | fecha_larga }}</span>
+            </div>
+        </div>
+
+        <div class="post-image-wrapper">
+            <img src="{{ url_for('imagen_proyecto', proyecto_id=p.id, v=version_imagen(p)) }}" alt="{{ p.titulo }}" class="post-image" loading="lazy">
+        </div>
+
+        <div class="post-footer">
+            <button type="button" class="btn-toggle-info" aria-expanded="false">
+                <span>Ver más detalles del proyecto</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+        </div>
+
+        <div class="post-details">
+            <h4><i class="fa-solid fa-circle-info"></i> Detalles e información:</h4>
+            <p>{{ p.descripcion if p.descripcion else "Sin descripción adicional proporcionada para este proyecto." }}</p>
+        </div>
+    </article>
+    {% else %}
+    <div class="estado-vacio">
+        <i class="fa-solid fa-folder-open"></i>
+        {% if error_db %}
+        <h3>Proyectos no disponibles por el momento</h3>
+        <p>Estamos teniendo problemas para cargar la información. Intenta de nuevo más tarde.</p>
+        {% else %}
+        <h3>Aún no hay proyectos publicados</h3>
+        <p>Muy pronto compartiremos aquí nuestros trabajos más recientes.</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelectorAll(".post-card").forEach(function (card) {
+        const boton = card.querySelector(".btn-toggle-info");
+        const detalles = card.querySelector(".post-details");
+        const texto = boton.querySelector("span");
+        const icono = boton.querySelector("i");
+
+        function alternar() {
+            const abierto = detalles.classList.toggle("show");
+            texto.textContent = abierto ? "Ocultar información" : "Ver más detalles del proyecto";
+            icono.className = abierto ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down";
+            boton.setAttribute("aria-expanded", String(abierto));
+        }
+
+        card.querySelector(".post-image-wrapper").addEventListener("click", alternar);
+        boton.addEventListener("click", alternar);
+    });
+</script>
+{% endblock %}

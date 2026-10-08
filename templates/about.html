@@ -1,1 +1,25 @@
-{% extends "base.html" %}{% block content %}<section class="page-hero"><p class="eyebrow accent">Nosotros</p><h1>Hacemos que las<br><em>cosas avancen.</em></h1><p>JM Architects nace para darle estructura a las decisiones importantes sobre tu patrimonio y tu territorio.</p></section><section class="split-section section"><div class="number-mark">JM<br><span>01</span></div><div><p class="eyebrow accent">Una mirada completa</p><h2>La arquitectura<br>de una buena decisión.</h2><p class="large-copy">No creemos en respuestas genéricas. Cada predio tiene una historia, cada familia una prioridad y cada proyecto un ritmo. Nuestro trabajo es encontrar el punto donde todo eso puede avanzar con orden.</p><a class="button button-dark" href="{{ url_for('contact') }}">Platiquemos <span>↗</span></a></div></section>{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+<section id="parallax">
+    <h1>NOSOTROS</h1>
+</section>
+<section class="sobre-nosotros">
+    <h2>NUESTRA HISTORIA</h2>
+    <div class="contenido">
+        <div class="texto">
+            <p>En JM ARCHITECTS, fusionamos la pasión por el diseño con la precisión técnica y legal. Somos una firma especializada en arquitectura y gestión, comprometida en transformar ideas en espacios funcionales, estéticos y completamente regulados. Entendemos que cada proyecto representa un patrimonio importante, por lo que nos encargamos de guiarte de principio a fin, asegurando que cada etapa cumpla con la normatividad y los estándares más altos de calidad.</p>
+            <h3>Misión</h3>
+            <p>Brindar soluciones integrales en arquitectura, diseño y gestión inmobiliaria, ofreciendo a nuestros clientes un respaldo profesional riguroso que garantice la seguridad jurídica, la optimización de recursos y la viabilidad de cada proyecto, superando siempre sus expectativas.</p>
+            <h3>Visión</h3>
+            <p>Consolidarnos como la firma líder en servicios de arquitectura y gestión en la región, reconocidos por nuestra excelencia técnica, honestidad y el compromiso inquebrantable de proteger y acrecentar el patrimonio de quienes confían en nuestro trabajo.</p>
+            <h3>Valores</h3>
+            <ul>
+                <li>Profesionalismo: Cada plano, trámite y avalúo se realiza con el más alto rigor técnico y ético.</li>
+                <li>Transparencia: Comunicación clara y directa en cada proceso, costo y gestión legal para darte total tranquilidad.</li>
+                <li>Compromiso: Asumimos cada proyecto como propio, cuidando los tiempos, la calidad y la inversión de nuestros clientes.</li>
+                <li>Innovación: Buscamos soluciones estéticas y funcionales modernas que se adapten a las necesidades reales del mercado actual.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}

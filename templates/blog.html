@@ -1,1 +1,25 @@
-{% extends "base.html" %}{% block content %}<section id="parallax"><h1>BLOG</h1><h3>Territorio, diseño y decisiones explicados sin rodeos</h3></section><section class="blog"><div class="destacado"><h2>Últimas Noticias</h2><p>Descubre nuestras más recientes novedades.</p></div><div class="noticias">{% for article in articles %}<a href="{{ url_for('article', slug=article.slug) }}"><article class="noticia{% if loop.first %} grande{% endif %}"><img src="{{ url_for('static', filename=article.image) }}" alt="{{ article.title }}"><div class="descripcion"><h3>{{ article.title }}</h3><p>{{ article.excerpt }}</p></div></article></a>{% endfor %}</div></section>{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+<section id="parallax">
+    <h1>BLOG</h1>
+</section>
+<section class="blog">
+    <div class="destacado">
+        <h2>Últimas Noticias</h2>
+        <p>Descubre nuestras más recientes novedades.</p>
+    </div>
+    <div class="noticias">
+        {% for articulo in articulos %}
+        <a href="{{ url_for('article', slug=articulo.slug) }}">
+            <div class="noticia{% if loop.first %} grande{% endif %}">
+                <img src="{{ url_for('static', filename=articulo.imagen) }}" alt="{{ articulo.titulo }}">
+                <div class="descripcion">
+                    <h3>{{ articulo.titulo_corto }}</h3>
+                    <p>{{ articulo.extracto }}</p>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

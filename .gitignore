@@ -3,3 +3,6 @@ __pycache__/
 *.sqlite3
 .venv/
 .env
+*.env
+.vercel
+.DS_Store

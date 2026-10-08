@@ -1,1 +1,82 @@
-{% extends "base.html" %}{% block content %}<section id="parallax"><h1>CONTACTO</h1></section><section id="contacto"><h2>¡HABLEMOS!</h2><p>¿Tienes preguntas, comentarios o sugerencias? ¡Estamos aquí para ayudarte!</p><h3>Estamos aquí para escucharte</h3><div class="formulario"><form action="{{ url_for('contact') }}" method="post"><label for="nombre">Nombre:</label><input type="text" id="nombre" name="name" required maxlength="80"><label for="email">Correo Electrónico:</label><input type="email" id="email" name="email" required maxlength="120"><label for="mensaje">Mensaje:</label><textarea id="mensaje" name="message" rows="4" required maxlength="1000"></textarea><button type="submit">Enviar</button></form></div><div class="mapa"><h3>Encuéntranos</h3><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3598.141888601711!2d-99.98223692629347!3d25.600200977453678" width="600" height="300" style="border:0;max-width:100%" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Ubicación de JM Architects"></iframe></div><div class="whatsapp"><a href="https://wa.me/528281311613" target="_blank" rel="noreferrer">Contáctanos por WhatsApp</a></div><div class="info-contacto"><h3>Información</h3><p><strong>Correo:</strong> jmarchitects.proyectos@gmail.com</p><p><strong>Teléfono:</strong> +52 828 131 1613</p></div></section>{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+<section id="parallax">
+    <h1>CONTACTO</h1>
+</section>
+
+<section id="contacto">
+    <h2>¡HABLEMOS!</h2>
+    <p>¿Tienes preguntas, comentarios o sugerencias? ¡Estamos aquí para ayudarte!</p>
+
+    <h3>Estamos aquí para escucharte</h3>
+    <div class="formulario">
+        <form action="{{ url_for('contact') }}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required maxlength="80" autocomplete="name">
+
+            <label for="email">Correo Electrónico:</label>
+            <input type="email" id="email" name="correo" required maxlength="120" autocomplete="email">
+
+            <label for="telefono">Teléfono:</label>
+            <input type="tel" id="telefono" name="telefono" maxlength="30" autocomplete="tel" placeholder="(000) 000 0000">
+
+            <label for="servicio">Servicio de interés:</label>
+            {% set servicio_elegido = request.args.get('servicio', '') %}
+            <select id="servicio" name="servicio">
+                <option value="">Selecciona una opción</option>
+                {% for s in servicios %}
+                <option value="{{ s }}" {% if s == servicio_elegido %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="mensaje">Mensaje:</label>
+            <textarea id="mensaje" name="mensaje" rows="4" required maxlength="2000"></textarea>
+
+            <label for="archivo">Adjuntar plano, escritura o imagen (opcional, máx. 4 MB):</label>
+            <input type="file" id="archivo" name="archivo" data-max-mb="4" accept="image/*,.pdf,.dwg,.dxf,.doc,.docx">
+
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <!-- Mapa interactivo -->
+    <div class="mapa">
+        <h3>Encuéntranos</h3>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3598.141888601711!2d-99.98223692629347!3d25.600200977453678!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8662d94df4a6e42d%3A0x5dad301f32349bd2!2sIgnacio%20Comonfort%20232%2C%20L%C3%A1zaro%20C%C3%A1rdenas%201ro%20Sector%2C%2067483%20Cadereyta%20Jim%C3%A9nez%2C%20N.L.!5e0!3m2!1ses-419!2smx!4v1790222297301!5m2!1ses-419!2smx" width="600" height="450" style="border:0;max-width:100%;" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Ubicación de JM Architects"></iframe>
+    </div>
+
+    <!-- Botón de WhatsApp -->
+    <div class="whatsapp">
+        <a href="https://wa.me/528281311613" target="_blank" rel="noreferrer">
+            <i class="fab fa-whatsapp fa-lg"></i>
+            Contáctanos por WhatsApp
+        </a>
+    </div>
+
+    <!-- Información de contacto -->
+    <div class="info-contacto">
+        <h3>Información</h3>
+        <p><strong>Correo:</strong> jmarchitects.proyectos@gmail.com</p>
+        <p><strong>Teléfono:</strong> +52 828 131 1613</p>
+        <p><strong>Dirección:</strong> Ignacio Comonfort 232, Lázaro Cárdenas 1er Sector, 67483 Cadereyta Jiménez, N.L.</p>
+    </div>
+</section>
+
+<!-- Ventana de éxito -->
+<dialog class="panel-dialogo dialogo-exito" id="modalExito">
+    <i class="fa-solid fa-circle-check"></i>
+    <h3>Mensaje enviado con éxito</h3>
+    <p>Gracias por contactarnos. En breve nos pondremos en comunicación contigo.</p>
+    <button type="button" class="boton" data-cerrar>Cerrar</button>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    if (new URLSearchParams(window.location.search).get("exito") === "1") {
+        document.getElementById("modalExito").showModal();
+        history.replaceState(null, "", window.location.pathname);
+    }
+</script>
+{% endblock %}
