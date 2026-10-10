@@ -3,6 +3,7 @@
 import base64
 import binascii
 import hashlib
+import io
 import json
 import math
 import os
@@ -28,6 +29,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     send_from_directory,
     session,
     url_for,
@@ -115,6 +117,14 @@ MENSAJES_MAX, MENSAJES_VENTANA_MIN = 5, 60
 RESENAS_MAX, RESENAS_VENTANA_MIN = 3, 60
 
 EXTENSIONES_ADJUNTO = {".pdf", ".jpg", ".jpeg", ".png", ".webp", ".dwg", ".dxf", ".doc", ".docx"}
+TIPOS_ADJUNTO = {
+    ".dwg": "image/vnd.dwg",
+    ".dxf": "image/vnd.dxf",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
+# Tipos que el panel puede mostrar dentro del navegador; el resto solo se descarga.
+TIPOS_VISTA_PREVIA = {"image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"}
 
 
 def hoy():
@@ -357,6 +367,16 @@ def detectar_tipo_imagen(datos):
     if datos[:4] == b"RIFF" and datos[8:12] == b"WEBP":
         return "image/webp"
     return None
+
+
+def tipo_adjunto(extension, datos):
+    """Tipo MIME según el contenido real del archivo, no según lo que diga el navegador."""
+    tipo = detectar_tipo_imagen(datos)
+    if tipo:
+        return tipo
+    if extension == ".pdf" and datos.startswith(b"%PDF"):
+        return "application/pdf"
+    return TIPOS_ADJUNTO.get(extension, "application/octet-stream")
 
 
 def leer_imagen(archivo):
@@ -725,7 +745,7 @@ def contact():
                 if contenido:
                     if not nombre_archivo.lower().endswith(extension):
                         nombre_archivo += extension
-                    adjunto = (nombre_archivo, contenido)
+                    adjunto = (nombre_archivo, contenido, tipo_adjunto(extension, contenido))
 
         if error:
             flash(error, "error")
@@ -743,10 +763,11 @@ def contact():
                 flash("Recibimos varios mensajes tuyos recientemente. Intenta de nuevo en una hora o escríbenos por WhatsApp.", "error")
                 return volver("contact")
             mensaje_id = insertar(
-                "INSERT INTO mensajes (nombre, correo, telefono, servicio, mensaje, archivo_nombre, ip_hash) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                "INSERT INTO mensajes (nombre, correo, telefono, servicio, mensaje, archivo_nombre, "
+                "archivo_tipo, archivo_datos, ip_hash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
                 (datos["nombre"], datos["correo"], datos["telefono"], datos["servicio"], datos["mensaje"],
-                 adjunto[0] if adjunto else None, huella),
+                 adjunto[0] if adjunto else None, adjunto[2] if adjunto else None,
+                 adjunto[1] if adjunto else None, huella),
             )
             guardado = True
         except Exception as e:
@@ -845,7 +866,8 @@ def admin():
             "(imagen_url IS NOT NULL) AS tiene_imagen FROM articulos ORDER BY fecha DESC, id DESC"
         )
         datos["mensajes"] = consultar(
-            "SELECT id, nombre, correo, telefono, servicio, mensaje, archivo_nombre, enviado, leido, fecha "
+            "SELECT id, nombre, correo, telefono, servicio, mensaje, archivo_nombre, archivo_tipo, "
+            "(archivo_datos IS NOT NULL) AS tiene_archivo, enviado, leido, fecha "
             "FROM mensajes ORDER BY leido ASC, fecha DESC, id DESC"
         )
     except Exception as e:
@@ -1071,6 +1093,32 @@ def marcar_mensaje(id):
         app.logger.error("Error al actualizar el mensaje: %s", e)
         flash("No se pudo actualizar el mensaje.", "error")
     return redirect(url_for("admin", vista="vista-mensajes"))
+
+
+@app.route("/admin/mensajes/<int:id>/adjunto")
+@login_requerido
+def adjunto_mensaje(id):
+    """Muestra (imágenes y PDF) o descarga el archivo adjunto de un mensaje. Solo para el administrador."""
+    try:
+        fila = consultar(
+            "SELECT archivo_nombre, archivo_tipo, archivo_datos FROM mensajes WHERE id = %s", (id,), uno=True
+        )
+    except Exception as e:
+        app.logger.error("Error al consultar el adjunto del mensaje %s: %s", id, e)
+        abort(503)
+    if not fila or fila["archivo_datos"] is None:
+        abort(404)
+    tipo = fila["archivo_tipo"] or "application/octet-stream"
+    descargar = bool(request.args.get("descargar")) or tipo not in TIPOS_VISTA_PREVIA
+    respuesta = send_file(
+        io.BytesIO(bytes(fila["archivo_datos"])),
+        mimetype=tipo,
+        as_attachment=descargar,
+        download_name=fila["archivo_nombre"] or "adjunto",
+        max_age=0,
+    )
+    respuesta.headers["Cache-Control"] = "private, no-store"
+    return respuesta
 
 
 @app.route("/admin/mensajes/eliminar/<int:id>", methods=["POST"])

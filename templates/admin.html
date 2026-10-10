@@ -339,7 +339,7 @@
         <button type="button" class="btn-volver" data-vista="vista-menu-principal"><i class="fa-solid fa-arrow-left"></i> Menú principal</button>
         <div class="panel-card">
             <h2><i class="fa-solid fa-envelope-open-text"></i> Mensajes de contacto</h2>
-            <p class="panel-nota">Todas las solicitudes del formulario quedan guardadas aquí, aunque el correo no se haya podido enviar.</p>
+            <p class="panel-nota">Todas las solicitudes del formulario quedan guardadas aquí, aunque el correo no se haya podido enviar. Los archivos adjuntos se pueden ver y descargar desde cada mensaje.</p>
             {% for m in mensajes %}
             <article class="mensaje{% if not m.leido %} no-leido{% endif %}">
                 <div class="mensaje-cabecera">
@@ -355,9 +355,46 @@
                     <a href="mailto:{{ m.correo }}"><i class="fa-solid fa-at"></i> {{ m.correo }}</a>
                     {% if m.telefono %}<a href="tel:{{ m.telefono }}"><i class="fa-solid fa-phone"></i> {{ m.telefono }}</a>{% endif %}
                     {% if m.servicio %}<span><i class="fa-solid fa-tag"></i> {{ m.servicio }}</span>{% endif %}
-                    {% if m.archivo_nombre %}<span title="El archivo se envía solo por correo"><i class="fa-solid fa-paperclip"></i> {{ m.archivo_nombre }}</span>{% endif %}
+                    {% if m.archivo_nombre and not m.tiene_archivo %}<span title="Este mensaje es anterior a la vista de adjuntos; el archivo solo llegó por correo"><i class="fa-solid fa-paperclip"></i> {{ m.archivo_nombre }} (solo por correo)</span>{% endif %}
                 </p>
                 <p class="mensaje-texto">{{ m.mensaje }}</p>
+                {% if m.tiene_archivo %}
+                {% set url_adjunto = url_for('adjunto_mensaje', id=m.id) %}
+                {% set url_descarga = url_for('adjunto_mensaje', id=m.id, descargar=1) %}
+                <div class="adjunto">
+                    {% if m.archivo_tipo and m.archivo_tipo.startswith('image/') %}
+                    <button type="button" class="adjunto-miniatura" data-abrir="adjunto{{ m.id }}" title="Ver imagen completa">
+                        <img src="{{ url_adjunto }}" alt="Imagen adjunta de {{ m.nombre }}" loading="lazy">
+                    </button>
+                    {% else %}
+                    <span class="adjunto-icono"><i class="fa-solid {{ 'fa-file-pdf' if m.archivo_tipo == 'application/pdf' else 'fa-file-lines' }}"></i></span>
+                    {% endif %}
+                    <div class="adjunto-info">
+                        <strong><i class="fa-solid fa-paperclip"></i> {{ m.archivo_nombre }}</strong>
+                        <div class="acciones">
+                            {% if m.archivo_tipo and m.archivo_tipo.startswith('image/') %}
+                            <button type="button" class="btn-tabla" data-abrir="adjunto{{ m.id }}"><i class="fa-solid fa-magnifying-glass-plus"></i> Ver</button>
+                            {% elif m.archivo_tipo == 'application/pdf' %}
+                            <a class="btn-tabla" href="{{ url_adjunto }}" target="_blank" rel="noopener"><i class="fa-solid fa-eye"></i> Ver PDF</a>
+                            {% endif %}
+                            <a class="btn-tabla" href="{{ url_descarga }}"><i class="fa-solid fa-download"></i> Descargar</a>
+                        </div>
+                    </div>
+                </div>
+                {% if m.archivo_tipo and m.archivo_tipo.startswith('image/') %}
+                <dialog class="panel-dialogo dialogo-ancho dialogo-imagen" id="adjunto{{ m.id }}">
+                    <div class="dialogo-cabecera">
+                        <h3>{{ m.archivo_nombre }}</h3>
+                        <button type="button" class="dialogo-cerrar" data-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <img src="{{ url_adjunto }}" alt="Imagen adjunta de {{ m.nombre }}" loading="lazy">
+                    <div class="dialogo-acciones">
+                        <a class="boton boton-claro" href="{{ url_adjunto }}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> Abrir en otra pestaña</a>
+                        <a class="boton" href="{{ url_descarga }}"><i class="fa-solid fa-download"></i> Descargar</a>
+                    </div>
+                </dialog>
+                {% endif %}
+                {% endif %}
                 <div class="acciones">
                     <a class="btn-tabla" href="mailto:{{ m.correo }}?subject={{ ('Re: tu solicitud a JM Architects') | urlencode }}"><i class="fa-solid fa-reply"></i> Responder</a>
                     <form action="{{ url_for('marcar_mensaje', id=m.id) }}" method="post">

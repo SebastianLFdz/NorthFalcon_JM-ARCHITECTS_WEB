@@ -360,6 +360,41 @@ def main():
 
     html = texto(c.get("/admin"))
     check("Panel muestra los mensajes", "Mensajes de contacto" in html and "juan@example.com" in html and "Solo guardado" in html)
+
+    # ---- Adjuntos visibles y descargables desde el panel ----
+    ca = cliente()
+    ta = token(ca)
+    base_adj = {**datos, "csrf_token": ta}
+    adjuntos = [("foto terreno.png", PNG, "image/png"), ("plano.pdf", b"%PDF-1.4 prueba", "application/pdf"),
+                ("escritura.docx", b"PK\x03\x04docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")]
+    ids = {}
+    for i, (nombre_arch, contenido, tipo) in enumerate(adjuntos):
+        ca.post("/contacto", data={**base_adj, "nombre": f"{MARCA} Adjunto {i}", "archivo": (io.BytesIO(contenido), nombre_arch)},
+                content_type="multipart/form-data")
+        fila = sql("SELECT id, archivo_tipo, archivo_datos FROM mensajes WHERE nombre = %s", (f"{MARCA} Adjunto {i}",), uno=True)
+        ids[tipo] = fila[0] if fila else None
+        check(f"Adjunto guardado en la base de datos ({nombre_arch})", fila and fila[1] == tipo and bytes(fila[2]) == contenido,
+              fila[1] if fila else None)
+    html = texto(c.get("/admin"))
+    check("Panel muestra miniatura de la imagen adjunta", f'/admin/mensajes/{ids["image/png"]}/adjunto' in html and "adjunto-miniatura" in html)
+    check("Panel ofrece Ver PDF y Descargar", f'/admin/mensajes/{ids["application/pdf"]}/adjunto?descargar=1' in html and "Ver PDF" in html)
+    resp = c.get(f'/admin/mensajes/{ids["image/png"]}/adjunto')
+    check("Imagen adjunta se muestra en el navegador", resp.status_code == 200 and resp.mimetype == "image/png"
+          and resp.data == PNG and resp.headers.get("Content-Disposition", "").startswith("inline"))
+    resp = c.get(f'/admin/mensajes/{ids["image/png"]}/adjunto?descargar=1')
+    check("Imagen adjunta se descarga con su nombre", resp.headers.get("Content-Disposition", "").startswith("attachment")
+          and "foto_terreno.png" in resp.headers.get("Content-Disposition", ""))
+    check("Adjunto no se guarda en caché", "no-store" in resp.headers.get("Cache-Control", ""))
+    resp = c.get(f'/admin/mensajes/{ids["application/pdf"]}/adjunto')
+    check("PDF adjunto se muestra en el navegador", resp.mimetype == "application/pdf"
+          and resp.headers.get("Content-Disposition", "").startswith("inline"))
+    resp = c.get(f'/admin/mensajes/{ids[adjuntos[2][2]]}/adjunto')
+    check("Word adjunto solo se descarga", resp.headers.get("Content-Disposition", "").startswith("attachment"))
+    check("Adjuntos protegidos sin sesión", publico.get(f'/admin/mensajes/{ids["image/png"]}/adjunto').status_code == 302)
+    check("Adjunto inexistente -> 404", c.get("/admin/mensajes/999999999/adjunto").status_code == 404)
+    sql("INSERT INTO mensajes (nombre, correo, mensaje, archivo_nombre) VALUES (%s, 'x@example.com', 'viejo', 'antiguo.pdf')",
+        (f"{MARCA} Mensaje viejo",))
+    check("Mensajes anteriores avisan que el archivo solo llegó por correo", "antiguo.pdf (solo por correo)" in texto(c.get("/admin")))
     resp = c.post(f"/admin/mensajes/leido/{msg[0]}", data={"csrf_token": t})
     check("Marcar mensaje como leído", sql("SELECT leido FROM mensajes WHERE id = %s", (msg[0],), uno=True)[0] is True)
     resp = c.post(f"/admin/mensajes/eliminar/{msg[0]}", data={"csrf_token": t}, follow_redirects=True)

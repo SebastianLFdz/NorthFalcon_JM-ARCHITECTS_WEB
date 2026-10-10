@@ -43,6 +43,10 @@ CREATE TABLE IF NOT EXISTS mensajes (
     fecha TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Archivo adjunto del formulario de contacto (para verlo y descargarlo desde el panel).
+ALTER TABLE mensajes ADD COLUMN IF NOT EXISTS archivo_tipo VARCHAR(100);
+ALTER TABLE mensajes ADD COLUMN IF NOT EXISTS archivo_datos BYTEA;
+
 CREATE TABLE IF NOT EXISTS intentos_login (
     id SERIAL PRIMARY KEY,
     ip_hash VARCHAR(64) NOT NULL,
