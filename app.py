@@ -77,10 +77,10 @@ SITIO = {
     "cp": "67483",
     "instagram": "https://www.instagram.com/architects.jm/",
     # Pon aquí la URL de la página de Facebook del cliente; mientras esté vacía no se muestra el ícono.
-    "facebook": "",
+    "facebook": "https://www.facebook.com/profile.php?id=61565802917401",
     # Nombre legal del responsable (persona física o razón social) para el aviso de privacidad.
-    "razon_social": "",
-    "aviso_actualizado": "8 de octubre de 2026",
+    "razon_social": "Jorge Alfredo Moreno López",
+    "aviso_actualizado": "10 de octubre de 2026",
 }
 
 SERVICIOS = [
